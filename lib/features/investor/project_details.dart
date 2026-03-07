@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../shared/widgets/stage_badge.dart';
 import '../../models/project.dart';
 import '../../shared/app_state.dart';
@@ -13,41 +14,58 @@ class ProjectDetails extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("Project Details")),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: ListView(
           children: [
             Text(
               project.title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             StageBadge(stage: project.stage),
-            const SizedBox(height: 20),
-            Text("Location: ${project.location}"),
-            const SizedBox(height: 10),
-            Text("Projected IRR: ${project.irr}%"),
-            const SizedBox(height: 10),
-            Text("Capital Required: ₹${project.capitalRequired} Cr"),
-            const SizedBox(height: 20),
-            const Text(
+            const SizedBox(height: 32),
+            _infoRow(context, Icons.location_on_outlined, "Location", project.location),
+            _infoRow(context, Icons.trending_up, "Projected IRR", "${project.irr}%"),
+            _infoRow(context, Icons.account_balance, "Capital Required", "₹${project.capitalRequired} Cr"),
+            const SizedBox(height: 32),
+            Text(
               "Market Snapshot",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             const Text(
-              "Tourism growth in this region is 12% YoY with supply gap in eco-luxury segment.",
+              "Tourism growth in this region is 12% YoY with a significant supply gap in the eco-luxury segment. This project aims to capture high-yield seasonal demand.",
+              style: TextStyle(height: 1.5),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 48),
             ElevatedButton(
               onPressed: () {
-                AppState.investorPortfolio.add(project);
+                context.read<AppState>().addToPortfolio(project);
                 ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Interest expressed')));
+                  SnackBar(
+                    content: Text('Interested in ${project.title}!'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
               },
               child: const Text('Express Interest'),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _infoRow(BuildContext context, IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 12),
+          Text("$label: ", style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(value),
+        ],
       ),
     );
   }

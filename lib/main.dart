@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'features/auth/login_screen.dart';
+import 'shared/app_state.dart';
 
 void main() {
-  runApp(const TourismInvestmentApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AppState()..fetchAll(),
+      child: const TourismInvestmentApp(),
+    ),
+  );
 }
 
 class TourismInvestmentApp extends StatelessWidget {
@@ -13,6 +20,7 @@ class TourismInvestmentApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'Investify',
       theme: AppTheme.lightTheme,
       home: const LoginScreen(),
     );

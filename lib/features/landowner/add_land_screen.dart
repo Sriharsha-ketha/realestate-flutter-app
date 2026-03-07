@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/land.dart';
 import '../../shared/app_state.dart';
 
@@ -64,21 +65,21 @@ class _AddLandScreenState extends State<AddLandScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // simple in-memory submission
-                AppState.pendingLands.add(
-                  Land(
-                    name: _nameCtrl.text,
-                    location: _locationCtrl.text,
-                    size: double.tryParse(_sizeCtrl.text) ?? 0,
-                    zoning: '',
-                    stage: 'Pending Approval',
-                  ),
+                final newLand = Land(
+                  name: _nameCtrl.text,
+                  location: _locationCtrl.text,
+                  size: double.tryParse(_sizeCtrl.text) ?? 0,
+                  zoning: '',
+                  stage: 'Pending Approval',
                 );
+                
+                context.read<AppState>().addLand(newLand);
+                
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                       content: Text('Land submitted for evaluation')),
                 );
-                // clear fields
+
                 _nameCtrl.clear();
                 _locationCtrl.clear();
                 _sizeCtrl.clear();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/project.dart';
 import '../../shared/app_state.dart';
 
@@ -31,16 +32,17 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     final capReq = double.tryParse(_capReqCtrl.text) ?? 0;
     final capRaised = double.tryParse(_capRaisedCtrl.text) ?? 0;
 
-    AppState.projects.add(
-      Project(
-        title: _titleCtrl.text,
-        location: _locationCtrl.text,
-        irr: irr,
-        capitalRequired: capReq,
-        capitalRaised: capRaised,
-        stage: 'Feasibility',
-      ),
+    final newProject = Project(
+      title: _titleCtrl.text,
+      location: _locationCtrl.text,
+      irr: irr,
+      capitalRequired: capReq,
+      capitalRaised: capRaised,
+      stage: 'Feasibility',
+      imageUrl: null,
     );
+    
+    context.read<AppState>().addProject(newProject);
     Navigator.pop(context);
   }
 

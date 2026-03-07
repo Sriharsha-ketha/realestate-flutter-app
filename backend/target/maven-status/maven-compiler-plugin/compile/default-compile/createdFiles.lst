@@ -1,0 +1,7 @@
+com/example/realestate/RealEstateBackendApplication.class
+com/example/realestate/repository/ProjectRepository.class
+com/example/realestate/model/Land.class
+com/example/realestate/model/Project.class
+com/example/realestate/repository/LandRepository.class
+com/example/realestate/controller/ProjectController.class
+com/example/realestate/controller/LandController.class

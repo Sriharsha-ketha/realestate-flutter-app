@@ -5,7 +5,8 @@ class MilestoneTile extends StatelessWidget {
   final bool completed;
   final bool inProgress;
 
-  MilestoneTile({
+  const MilestoneTile({
+    super.key,
     required this.title,
     this.completed = false,
     this.inProgress = false,
@@ -13,23 +14,44 @@ class MilestoneTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    IconData icon;
-    Color color;
-
+    Color statusColor;
+    IconData statusIcon;
+    
     if (completed) {
-      icon = Icons.check_circle;
-      color = Colors.green;
+      statusColor = Colors.green.shade600;
+      statusIcon = Icons.check_circle;
     } else if (inProgress) {
-      icon = Icons.autorenew;
-      color = Colors.orange;
+      statusColor = Theme.of(context).colorScheme.secondary;
+      statusIcon = Icons.pending_actions;
     } else {
-      icon = Icons.radio_button_unchecked;
-      color = Colors.grey;
+      statusColor = Colors.grey.shade400;
+      statusIcon = Icons.radio_button_off;
     }
 
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(title),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: inProgress ? statusColor.withOpacity(0.5) : Colors.grey.shade200,
+          width: inProgress ? 2 : 1,
+        ),
+      ),
+      child: ListTile(
+        leading: Icon(statusIcon, color: statusColor),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: inProgress ? FontWeight.bold : FontWeight.normal,
+            color: completed ? Colors.grey : Colors.black87,
+            decoration: completed ? TextDecoration.lineThrough : null,
+          ),
+        ),
+        trailing: completed 
+          ? const Icon(Icons.done_all, size: 16, color: Colors.green)
+          : null,
+      ),
     );
   }
 }
