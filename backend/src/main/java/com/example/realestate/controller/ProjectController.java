@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -17,9 +18,15 @@ public class ProjectController {
     private ProjectRepository projectRepository;
 
     @GetMapping
-    public List<Project> getAllProjects() {
-        System.out.println(">>> ProjectController: Fetching all projects");
-        return projectRepository.findAll();
+    public List<Project> getAllProjects(@RequestParam(required = false) String theme) {
+        System.out.println(">>> ProjectController: Fetching projects (Filter: " + theme + ")");
+        List<Project> projects = projectRepository.findAll();
+        if (theme != null && !theme.isEmpty()) {
+            return projects.stream()
+                    .filter(p -> theme.equalsIgnoreCase(p.getTheme()))
+                    .collect(Collectors.toList());
+        }
+        return projects;
     }
 
     @PostMapping
@@ -30,7 +37,6 @@ public class ProjectController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Project> getProjectById(@PathVariable Long id) {
-        System.out.println(">>> ProjectController: Fetching project with ID: " + id);
         return projectRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -38,16 +44,19 @@ public class ProjectController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Project> updateProject(@PathVariable Long id, @RequestBody Project projectDetails) {
-        System.out.println(">>> ProjectController: Updating project with ID: " + id);
         return projectRepository.findById(id)
                 .map(project -> {
                     project.setTitle(projectDetails.getTitle());
                     project.setLocation(projectDetails.getLocation());
+                    project.setTheme(projectDetails.getTheme());
                     project.setIrr(projectDetails.getIrr());
                     project.setCapitalRequired(projectDetails.getCapitalRequired());
                     project.setCapitalRaised(projectDetails.getCapitalRaised());
                     project.setStage(projectDetails.getStage());
                     project.setImageUrl(projectDetails.getImageUrl());
+                    project.setProjectedGrowth(projectDetails.getProjectedGrowth());
+                    project.setDemandIndex(projectDetails.getDemandIndex());
+                    project.setRiskProfile(projectDetails.getRiskProfile());
                     return ResponseEntity.ok(projectRepository.save(project));
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -55,7 +64,6 @@ public class ProjectController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
-        System.out.println(">>> ProjectController: Deleting project with ID: " + id);
         return projectRepository.findById(id)
                 .map(project -> {
                     projectRepository.delete(project);

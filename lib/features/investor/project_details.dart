@@ -3,69 +3,171 @@ import 'package:provider/provider.dart';
 import '../../../../shared/widgets/stage_badge.dart';
 import '../../models/project.dart';
 import '../../shared/app_state.dart';
+import '../../widgets/milestone_tile.dart';
 
-class ProjectDetails extends StatelessWidget {
+class ProjectDetails extends StatefulWidget {
   final Project project;
 
   const ProjectDetails({super.key, required this.project});
 
   @override
+  State<ProjectDetails> createState() => _ProjectDetailsState();
+}
+
+class _ProjectDetailsState extends State<ProjectDetails> {
+  bool _complianceAccepted = false;
+
+  @override
   Widget build(BuildContext context) {
+    final proj = widget.project;
     return Scaffold(
-      appBar: AppBar(title: const Text("Project Details")),
-      body: Padding(
+      appBar: AppBar(title: const Text("Destination Intelligence")),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              project.title,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 12),
-            StageBadge(stage: project.stage),
-            const SizedBox(height: 32),
-            _infoRow(context, Icons.location_on_outlined, "Location", project.location),
-            _infoRow(context, Icons.trending_up, "Projected IRR", "${project.irr}%"),
-            _infoRow(context, Icons.account_balance, "Capital Required", "₹${project.capitalRequired} Cr"),
-            const SizedBox(height: 32),
-            Text(
-              "Market Snapshot",
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              "Tourism growth in this region is 12% YoY with a significant supply gap in the eco-luxury segment. This project aims to capture high-yield seasonal demand.",
-              style: TextStyle(height: 1.5),
-            ),
-            const SizedBox(height: 48),
-            ElevatedButton(
-              onPressed: () {
-                context.read<AppState>().addToPortfolio(project);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Interested in ${project.title}!'),
-                    behavior: SnackBarBehavior.floating,
+            // Destination Title & Theme
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(proj.title, style: Theme.of(context).textTheme.headlineMedium),
+                      Text(proj.theme, style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontWeight: FontWeight.bold)),
+                    ],
                   ),
-                );
-              },
-              child: const Text('Express Interest'),
+                ),
+                StageBadge(stage: proj.stage),
+              ],
             ),
+            const SizedBox(height: 24),
+
+            // Market Intelligence Module (Requirement: Destination Analytics)
+            _sectionHeader(context, "Market Intelligence"),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Column(
+                children: [
+                  _analyticRow("Projected Growth", "${proj.projectedGrowth}% YoY", Icons.trending_up, Colors.green),
+                  const Divider(height: 24),
+                  _analyticRow("Demand Index", "${proj.demandIndex}/10", Icons.leaderboard, Colors.blue),
+                  const Divider(height: 24),
+                  _analyticRow("Risk Profile", proj.riskProfile, Icons.shield_outlined, Colors.orange),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Financial Modelling Output (Requirement: ROI/IRR Projections)
+            _sectionHeader(context, "Financial Projections"),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _miniStatCard(context, "Expected IRR", "${proj.irr}%", Icons.pie_chart),
+                const SizedBox(width: 12),
+                _miniStatCard(context, "Capital Req.", "₹${proj.capitalRequired} Cr", Icons.account_balance),
+              ],
+            ),
+            const SizedBox(height: 32),
+
+            // Project Lifecycle Tracker (Requirement: Milestone Visibility)
+            _sectionHeader(context, "Development Roadmap"),
+            const SizedBox(height: 12),
+            MilestoneTile(title: "Feasibility Study", completed: true),
+            MilestoneTile(title: "Regulatory Approvals", completed: proj.stage != "Feasibility", inProgress: proj.stage == "Approvals"),
+            MilestoneTile(title: "Construction Phase", completed: proj.stage == "Operational", inProgress: proj.stage == "Construction"),
+            MilestoneTile(title: "Operational Handover", inProgress: proj.stage == "Operational"),
+            const SizedBox(height: 32),
+
+            // Compliance & Disclaimer (Requirement: Compliance controls)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.shade200),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    "Disclaimer: Real estate investments carry inherent risks. Projections are based on current market intelligence and historical data.",
+                    style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _complianceAccepted,
+                        onChanged: (val) => setState(() => _complianceAccepted = val!),
+                      ),
+                      const Expanded(
+                        child: Text("I acknowledge the financial modelling assumptions and risk profile.", style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            ElevatedButton(
+              onPressed: _complianceAccepted ? () {
+                context.read<AppState>().addToPortfolio(proj);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Expression of Interest submitted for ${proj.title}')),
+                );
+              } : null,
+              child: const Text('Submit Expression of Interest (EOI)'),
+            ),
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  Widget _infoRow(BuildContext context, IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 12),
-          Text("$label: ", style: const TextStyle(fontWeight: FontWeight.w500)),
-          Text(value),
-        ],
+  Widget _sectionHeader(BuildContext context, String title) {
+    return Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold));
+  }
+
+  Widget _analyticRow(String label, String value, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 12),
+        Text(label, style: const TextStyle(color: Colors.grey)),
+        const Spacer(),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _miniStatCard(BuildContext context, String label, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 8),
+            Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }

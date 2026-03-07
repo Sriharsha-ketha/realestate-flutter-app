@@ -21,16 +21,19 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
       id: currentProj.id,
       title: currentProj.title,
       location: currentProj.location,
+      theme: currentProj.theme,
+      description: currentProj.description,
       irr: currentProj.irr,
       capitalRequired: currentProj.capitalRequired,
       capitalRaised: currentProj.capitalRaised,
       stage: newStage,
       imageUrl: currentProj.imageUrl,
+      projectedGrowth: currentProj.projectedGrowth,
+      demandIndex: currentProj.demandIndex,
+      riskProfile: currentProj.riskProfile,
     );
     
-    // In a real app, this would call a backend update method in AppState
-    // For now, we update local and could trigger a refresh
-    appState.addProject(updatedProj); // This is a bit of a hack since add != update
+    appState.addProject(updatedProj);
     setState(() {});
   }
 

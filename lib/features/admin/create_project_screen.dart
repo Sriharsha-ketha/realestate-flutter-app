@@ -13,6 +13,8 @@ class CreateProjectScreen extends StatefulWidget {
 class _CreateProjectScreenState extends State<CreateProjectScreen> {
   final _titleCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
+  final _themeCtrl = TextEditingController(text: 'Eco-Luxury');
+  final _descCtrl = TextEditingController();
   final _irrCtrl = TextEditingController();
   final _capReqCtrl = TextEditingController();
   final _capRaisedCtrl = TextEditingController();
@@ -21,6 +23,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   void dispose() {
     _titleCtrl.dispose();
     _locationCtrl.dispose();
+    _themeCtrl.dispose();
+    _descCtrl.dispose();
     _irrCtrl.dispose();
     _capReqCtrl.dispose();
     _capRaisedCtrl.dispose();
@@ -35,11 +39,16 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     final newProject = Project(
       title: _titleCtrl.text,
       location: _locationCtrl.text,
+      theme: _themeCtrl.text,
+      description: _descCtrl.text,
       irr: irr,
       capitalRequired: capReq,
       capitalRaised: capRaised,
       stage: 'Feasibility',
       imageUrl: null,
+      projectedGrowth: 0,
+      demandIndex: 5,
+      riskProfile: 'Medium',
     );
     
     context.read<AppState>().addProject(newProject);
@@ -56,50 +65,40 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
           children: [
             TextField(
               controller: _titleCtrl,
-              decoration: InputDecoration(
-                labelText: 'Project Title',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+              decoration: const InputDecoration(labelText: 'Project Title'),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _locationCtrl,
-              decoration: InputDecoration(
-                labelText: 'Location',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+              decoration: const InputDecoration(labelText: 'Location'),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: _themeCtrl,
+              decoration: const InputDecoration(labelText: 'Theme (e.g. Wellness)'),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: _descCtrl,
+              decoration: const InputDecoration(labelText: 'Description'),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _irrCtrl,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Projected IRR (%)',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+              decoration: const InputDecoration(labelText: 'Projected IRR (%)'),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _capReqCtrl,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Capital Required (₹Cr)',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+              decoration: const InputDecoration(labelText: 'Capital Required (₹Cr)'),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _capRaisedCtrl,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Capital Raised (₹Cr)',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+              decoration: const InputDecoration(labelText: 'Capital Raised (₹Cr)'),
             ),
             const SizedBox(height: 25),
             ElevatedButton(onPressed: _submit, child: const Text('Create')),

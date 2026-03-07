@@ -15,27 +15,27 @@ class _LandApprovalScreenState extends State<LandApprovalScreen> {
     final appState = context.read<AppState>();
     final land = appState.pendingLands[index];
     
-    // In a real app, this would be a single atomic backend call
-    // For now, we update local state which would trigger backend calls
     appState.addProject(
       Project(
         title: '${land.name} Project',
         location: land.location,
+        theme: 'General',
+        description: 'New project from land approval',
         irr: 0,
         capitalRequired: 0,
         capitalRaised: 0,
         stage: 'Feasibility',
         imageUrl: null,
+        projectedGrowth: 0,
+        demandIndex: 5,
+        riskProfile: 'Medium',
       ),
     );
     
-    // Note: Ideally we'd have an approveLand method in AppState
-    // and remove from pending.
     setState(() {});
   }
 
   void _reject(int index) {
-    // AppState.pendingLands.removeAt(index);
     setState(() {});
   }
 
