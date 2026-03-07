@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../investor/investor_shell.dart';
 import '../landowner/landowner_shell.dart';
+import '../admin/admin_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,7 +11,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   String role = "Investor";
 
   @override
@@ -21,37 +21,28 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
             const Text(
               "Tourism Investment Platform",
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 30),
-
             TextField(
               decoration: InputDecoration(
                 labelText: "Email",
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-
             const SizedBox(height: 20),
-
             TextField(
               obscureText: true,
               decoration: InputDecoration(
                 labelText: "Password",
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-
             const SizedBox(height: 20),
-
             DropdownButtonFormField(
               value: role,
               items: const [
@@ -63,6 +54,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   value: "Landowner",
                   child: Text("Landowner"),
                 ),
+                DropdownMenuItem(
+                  value: "Administrator",
+                  child: Text("Administrator"),
+                ),
               ],
               onChanged: (value) {
                 setState(() {
@@ -70,26 +65,27 @@ class _LoginScreenState extends State<LoginScreen> {
                 });
               },
               decoration: InputDecoration(
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-
             const SizedBox(height: 30),
-
             ElevatedButton(
               onPressed: () {
                 if (role == "Investor") {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const InvestorShell()),
+                    MaterialPageRoute(builder: (_) => const InvestorShell()),
+                  );
+                } else if (role == "Landowner") {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LandownerShell()),
                   );
                 } else {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const LandownerShell()),
+                    MaterialPageRoute(builder: (_) => const AdminShell()),
                   );
                 }
               },

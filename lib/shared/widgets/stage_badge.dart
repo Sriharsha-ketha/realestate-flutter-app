@@ -22,6 +22,12 @@ class StageBadge extends StatelessWidget {
       case "Operational":
         color = Colors.green;
         break;
+      case "Pending Approval":
+        color = Colors.purple;
+        break;
+      case "Approvals":
+        color = Colors.brown;
+        break;
       default:
         color = Colors.grey;
     }
