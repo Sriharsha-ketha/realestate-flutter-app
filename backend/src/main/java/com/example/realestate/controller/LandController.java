@@ -99,6 +99,8 @@ public class LandController {
                     land.setSize(landDetails.getSize());
                     land.setZoning(landDetails.getZoning());
                     land.setStage(landDetails.getStage());
+                    land.setStateCategory(landDetails.getStateCategory());
+                    land.setDestination(landDetails.getDestination());
                     land.setLegalDocuments(landDetails.getLegalDocuments());
                     land.setPhoneNumber(landDetails.getPhoneNumber());
                     land.setUtilities(landDetails.getUtilities());

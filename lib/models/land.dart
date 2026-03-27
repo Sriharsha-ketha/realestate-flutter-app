@@ -11,6 +11,8 @@ class Land {
   final String reviewStatus;
   final String? adminNotes;
   final String? phoneNumber;
+  final String? stateCategory;
+  final String? destination;
 
   Land({
     this.id,
@@ -25,6 +27,8 @@ class Land {
     this.reviewStatus = 'PENDING',
     this.adminNotes,
     this.phoneNumber,
+    this.stateCategory,
+    this.destination,
   });
 
   factory Land.fromJson(Map<String, dynamic> json) {
@@ -41,6 +45,8 @@ class Land {
       reviewStatus: json['reviewStatus'] ?? 'PENDING',
       adminNotes: json['adminNotes'],
       phoneNumber: json['phoneNumber'],
+      stateCategory: json['stateCategory'] ?? json['state_category'],
+      destination: json['destination'],
     );
   }
 
@@ -58,6 +64,8 @@ class Land {
       'reviewStatus': reviewStatus,
       'adminNotes': adminNotes,
       'phoneNumber': phoneNumber,
+      'stateCategory': stateCategory,
+      'destination': destination,
     };
   }
 }

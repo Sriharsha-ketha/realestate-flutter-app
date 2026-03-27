@@ -11,11 +11,13 @@ public class ProjectResponse {
     private double expectedIRR;
     private String stage;
     private int progress;
+    private String stateCategory;
+    private String destination;
 
     public ProjectResponse() {
     }
 
-    public ProjectResponse(Long id, Long landId, String projectName, String location, double landSize, double investmentRequired, double expectedROI, double expectedIRR, String stage, int progress) {
+    public ProjectResponse(Long id, Long landId, String projectName, String location, double landSize, double investmentRequired, double expectedROI, double expectedIRR, String stage, int progress, String stateCategory, String destination) {
         this.id = id;
         this.landId = landId;
         this.projectName = projectName;
@@ -26,6 +28,8 @@ public class ProjectResponse {
         this.expectedIRR = expectedIRR;
         this.stage = stage;
         this.progress = progress;
+        this.stateCategory = stateCategory;
+        this.destination = destination;
     }
 
     public Long getId() {
@@ -107,4 +111,10 @@ public class ProjectResponse {
     public void setProgress(int progress) {
         this.progress = progress;
     }
+
+    public String getStateCategory() { return stateCategory; }
+    public void setStateCategory(String stateCategory) { this.stateCategory = stateCategory; }
+
+    public String getDestination() { return destination; }
+    public void setDestination(String destination) { this.destination = destination; }
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:realestate/widgets/project_card.dart';
 import '../../models/project.dart';
 import '../../shared/app_state.dart';
+import '../../services/api_service.dart';
 import 'project_details.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -13,8 +14,12 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
-  String selectedTheme = 'All';
-  final List<String> themes = ['All', 'Eco-Luxury', 'Wellness', 'Beachfront', 'Adventure'];
+  String selectedMain = 'All';
+  String selectedSub = 'All';
+
+  Map<String, List<String>> _tourismMap = {};
+  bool _loadingTourismMap = false;
+  
   List<Project> _allProjects = [];
   List<Project> _displayed = [];
 
@@ -22,7 +27,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void initState() {
     super.initState();
     // Load all projects once when the screen appears
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAllProjects());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTourismFilters();
+      _loadAllProjects();
+    });
+  }
+
+  Future<void> _loadTourismFilters() async {
+    setState(() => _loadingTourismMap = true);
+    try {
+      _tourismMap = await ApiService.getTourismFilters();
+      setState(() {});
+    } catch (e) {
+      debugPrint('Error loading tourism filters: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading tourism filters: $e')),
+        );
+      }
+    } finally {
+      setState(() => _loadingTourismMap = false);
+    }
   }
 
   Future<void> _loadAllProjects() async {
@@ -30,16 +55,26 @@ class _ExploreScreenState extends State<ExploreScreen> {
     await appState.fetchAll();
     setState(() {
       _allProjects = List.from(appState.projects);
-      _applyThemeFilter();
+      _applyTourismFilter();
     });
   }
 
-  void _applyThemeFilter() {
-    if (selectedTheme == 'All') {
+  void _applyTourismFilter() {
+    if (selectedMain == 'All') {
       _displayed = List.from(_allProjects);
-    } else {
-      _displayed = _allProjects.where((p) => (p.theme ?? '').toLowerCase() == selectedTheme.toLowerCase() || (p.theme ?? '').contains(selectedTheme)).toList();
+      return;
     }
+
+    final state = selectedMain;
+    final sub = selectedSub == 'All' ? null : selectedSub;
+
+    _displayed = _allProjects.where((p) {
+      final pState = (p.stateCategory ?? '').toString();
+      final pDest = (p.destination ?? '').toString();
+      if (pState.toLowerCase() != state.toLowerCase()) return false;
+      if (sub == null) return true;
+      return pDest.toLowerCase() == sub.toLowerCase();
+    }).toList();
   }
 
   @override
@@ -58,39 +93,105 @@ class _ExploreScreenState extends State<ExploreScreen> {
         builder: (context, appState, child) {
           return Column(
             children: [
-              // Theme Selector
+              // Main filters (states/regions)
               Container(
                 height: 60,
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: ListView.builder(
+                child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: themes.length,
-                  itemBuilder: (context, index) {
-                    final theme = themes[index];
-                    final isSelected = selectedTheme == theme;
-                    return Padding(
+                  children: [
+                    Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: ChoiceChip(
-                        label: Text(theme),
-                        selected: isSelected,
-                        onSelected: (val) {
-                          if (val) {
+                        label: const Text('All'),
+                        selected: selectedMain == 'All',
+                        onSelected: (v) {
+                          if (v) {
                             setState(() {
-                              selectedTheme = theme;
-                              _applyThemeFilter();
+                              selectedMain = 'All';
+                              selectedSub = 'All';
+                              _applyTourismFilter();
                             });
                           }
                         },
                         selectedColor: Theme.of(context).colorScheme.primary,
-                        labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black,
-                        ),
+                        labelStyle: TextStyle(color: selectedMain == 'All' ? Colors.white : Colors.black),
                       ),
-                    );
-                  },
+                    ),
+                    ...?_tourismMap.keys.map((state) {
+                      final isSelected = selectedMain == state;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(state),
+                          selected: isSelected,
+                          onSelected: (v) {
+                            if (v) {
+                              setState(() {
+                                selectedMain = state;
+                                selectedSub = 'All';
+                                _applyTourismFilter();
+                              });
+                            }
+                          },
+                          selectedColor: Theme.of(context).colorScheme.primary,
+                          labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                        ),
+                      );
+                    }).toList(),
+                  ],
                 ),
               ),
+              // Sub-filters (destinations) — show only when a state is selected
+              if (selectedMain != 'All')
+                Container(
+                  height: 60,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: const Text('All'),
+                          selected: selectedSub == 'All',
+                          onSelected: (v) {
+                            if (v) {
+                              setState(() {
+                                selectedSub = 'All';
+                                _applyTourismFilter();
+                              });
+                            }
+                          },
+                          selectedColor: Theme.of(context).colorScheme.primary,
+                          labelStyle: TextStyle(color: selectedSub == 'All' ? Colors.white : Colors.black),
+                        ),
+                      ),
+                      ...?_tourismMap[selectedMain]?.map((dest) {
+                        final isSelected = selectedSub == dest;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(dest),
+                            selected: isSelected,
+                            onSelected: (v) {
+                              if (v) {
+                                setState(() {
+                                  selectedSub = dest;
+                                  _applyTourismFilter();
+                                });
+                              }
+                            },
+                            selectedColor: Theme.of(context).colorScheme.primary,
+                            labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
               Expanded(
                 child: appState.isLoading
                     ? const Center(child: CircularProgressIndicator())

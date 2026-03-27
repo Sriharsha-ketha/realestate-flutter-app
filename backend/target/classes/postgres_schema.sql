@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS lands (
     stage           VARCHAR(255),
     legal_documents TEXT,
     phone_number    VARCHAR(50),
+    state_category  VARCHAR(255),
+    destination     VARCHAR(255),
     review_status   VARCHAR(50),
     admin_notes     TEXT
 );
@@ -67,6 +69,8 @@ CREATE TABLE IF NOT EXISTS projects (
     investment_required DOUBLE PRECISION NOT NULL DEFAULT 0,
     expected_roi        DOUBLE PRECISION NOT NULL DEFAULT 0,
     expected_irr        DOUBLE PRECISION NOT NULL DEFAULT 0,
+    state_category      VARCHAR(255),
+    destination         VARCHAR(255),
     stage               VARCHAR(50) NOT NULL -- maps ProjectStage enum
 );
 

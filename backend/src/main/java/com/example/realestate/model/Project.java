@@ -41,6 +41,12 @@ public class Project {
     @Column(nullable = false)
     private ProjectStage stage;
 
+    // Tourism classification
+    @Column(name = "state_category")
+    private String stateCategory;
+
+    private String destination;
+
     public Project() {
     }
 
@@ -119,6 +125,22 @@ public class Project {
 
     public void setStage(ProjectStage stage) {
         this.stage = stage;
+    }
+
+    public String getStateCategory() {
+        return stateCategory;
+    }
+
+    public void setStateCategory(String stateCategory) {
+        this.stateCategory = stateCategory;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 }
 

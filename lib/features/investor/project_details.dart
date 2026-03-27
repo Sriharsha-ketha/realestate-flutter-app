@@ -45,20 +45,30 @@ class _ProjectDetailsState extends State<ProjectDetails> {
     setState(() => _isSubmitting = true);
 
     try {
-      final success = await context.read<AppState>().addToPortfolio(widget.project);
+      final appState = context.read<AppState>();
+      final success = await appState.addToPortfolio(widget.project);
       
       if (success && mounted) {
         setState(() => _eoiSubmitted = true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✓ Expression of Interest submitted for ${widget.project.title}'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Pop back after successful submission
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) Navigator.pop(context);
-        });
+        
+        // Ensure portfolio data is refreshed before showing success message
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (mounted) {
+          await appState.fetchAll();
+        }
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✓ Expression of Interest submitted for ${widget.project.title}'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Pop back after successful submission
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) Navigator.pop(context);
+          });
+        }
       }
     } on Exception catch (e) {
       if (mounted) {

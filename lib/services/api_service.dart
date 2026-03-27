@@ -264,6 +264,22 @@ class ApiService {
     return raw.map((d) => Destination.fromJson(d as Map<String, dynamic>)).toList();
   }
 
+  /// Fetch the tourism filter map from the backend.
+  /// Returns Map<String, List<String>> where key is state and value is list of destinations.
+  static Future<Map<String, List<String>>> getTourismFilters() async {
+    final response = await http.get(Uri.parse('$baseUrl/destinations/tourism'), headers: await _getHeaders());
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(response.body) as Map<String, dynamic>;
+      // Convert JSON to Map<String, List<String>>
+      return jsonBody.map<String, List<String>>((key, value) {
+        final list = (value as List<dynamic>).map<String>((v) => v.toString()).toList();
+        return MapEntry(key, list);
+      });
+    } else {
+      throw Exception('Failed to load tourism filters');
+    }
+  }
+
   // Finance endpoints
   static Future<double> calculateROI(double investment, double finalValue) async {
     final url = Uri.parse('$baseUrl/finance/roi?investment=${investment.toString()}&finalValue=${finalValue.toString()}');

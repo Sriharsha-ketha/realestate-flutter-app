@@ -21,6 +21,11 @@ public class Land {
 
     private String legalDocuments;
     private String phoneNumber;
+    // Tourism classification
+    @Column(name = "state_category")
+    private String stateCategory;
+
+    private String destination;
 
     @ElementCollection
     @CollectionTable(name = "land_utilities", joinColumns = @JoinColumn(name = "land_id"))
@@ -83,6 +88,12 @@ public class Land {
 
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public String getStateCategory() { return stateCategory; }
+    public void setStateCategory(String stateCategory) { this.stateCategory = stateCategory; }
+
+    public String getDestination() { return destination; }
+    public void setDestination(String destination) { this.destination = destination; }
 
     public List<String> getUtilities() { return utilities; }
     public void setUtilities(List<String> utilities) { this.utilities = utilities; }

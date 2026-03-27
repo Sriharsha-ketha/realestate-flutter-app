@@ -100,6 +100,18 @@ class _LandDetailsApprovalState extends State<LandDetailsApproval> {
                 label: 'Location',
                 value: land.location,
               ),
+              if (land.stateCategory != null && land.stateCategory!.isNotEmpty)
+                _buildInfoCard(
+                  icon: Icons.map_outlined,
+                  label: 'State / Region',
+                  value: land.stateCategory!,
+                ),
+              if (land.destination != null && land.destination!.isNotEmpty)
+                _buildInfoCard(
+                  icon: Icons.place_outlined,
+                  label: 'Tourist Destination',
+                  value: land.destination!,
+                ),
               if (land.phoneNumber != null && land.phoneNumber!.isNotEmpty)
                 _buildInfoCard(
                   icon: Icons.phone_outlined,

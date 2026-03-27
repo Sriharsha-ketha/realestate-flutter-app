@@ -88,7 +88,16 @@ class _PortfolioScreenState extends State<PortfolioScreen> with WidgetsBindingOb
             padding: const EdgeInsets.all(16),
             itemCount: portfolio.length,
             itemBuilder: (context, index) {
+              if (index >= portfolio.length) {
+                return const SizedBox.shrink();
+              }
               final proj = portfolio[index];
+              
+              // Validate project data
+              if (proj.id == null || proj.projectName.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
                 child: InkWell(
@@ -123,13 +132,17 @@ class _PortfolioScreenState extends State<PortfolioScreen> with WidgetsBindingOb
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                proj.title,
+                                proj.title ?? 'Unnamed Project',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "Investment Required: ₹${proj.investmentRequired.toStringAsFixed(2)}",
+                                "Investment Required: ₹${(proj.investmentRequired ?? 0.0).toStringAsFixed(2)}",
                                 style: Theme.of(context).textTheme.bodyMedium,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -137,10 +150,13 @@ class _PortfolioScreenState extends State<PortfolioScreen> with WidgetsBindingOb
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            StageBadge(stage: proj.stage),
+                            if (proj.stage != null && proj.stage.isNotEmpty)
+                              StageBadge(stage: proj.stage ?? 'LAND_APPROVED')
+                            else
+                              const SizedBox.shrink(),
                             const SizedBox(height: 8),
                             Text(
-                              "${proj.expectedIRR.toStringAsFixed(1)}% IRR",
+                              "${(proj.expectedIRR ?? 0.0).toStringAsFixed(1)}% IRR",
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.green,
@@ -157,7 +173,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> with WidgetsBindingOb
                                         MaterialPageRoute(
                                           builder: (_) => MilestonesPage(
                                             projectId: proj.id!,
-                                            projectName: proj.title,
+                                            projectName: proj.title ?? 'Project',
+                                            initialStage: proj.stage ?? 'LAND_APPROVED',
                                           ),
                                         ),
                                       );

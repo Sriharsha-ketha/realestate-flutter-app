@@ -143,11 +143,12 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                                     builder: (_) => MilestonesPage(
                                       projectId: proj.id!,
                                       projectName: proj.projectName,
+                                      initialStage: proj.stage,
                                     ),
                                   ),
                                 );
                               },
-                              child: const Text("Detailed Log"),
+                              child: const Text("View Progress"),
                             ),
                           ),
                         ],

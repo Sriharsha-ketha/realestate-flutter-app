@@ -43,7 +43,10 @@ public class ProjectController {
                     project.getExpectedIRR(),
                     stageName,
                     progress
-            );
+        ,
+            project.getStateCategory(),
+            project.getDestination()
+        );
         }).toList();
     }
 

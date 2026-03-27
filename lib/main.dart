@@ -4,6 +4,7 @@ import 'theme/app_theme.dart';
 import 'features/auth/login_screen.dart';
 import 'features/finance/financial_calculator.dart';
 import 'features/admin/pending_lands_page.dart';
+import 'features/landowner/my_lands_screen.dart';
 import 'shared/app_state.dart';
 
 void main() {
@@ -28,6 +29,7 @@ class TourismInvestmentApp extends StatelessWidget {
       routes: {
         '/finance': (_) => const FinancialCalculator(),
         '/admin': (_) => const PendingLandsPage(),
+        '/my-lands': (_) => const MyLandsScreen(),
       },
     );
   }

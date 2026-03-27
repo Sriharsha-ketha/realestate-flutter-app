@@ -8,6 +8,8 @@ class Project {
   final double expectedROI;
   final double expectedIRR;
   final String stage;
+  final String? stateCategory;
+  final String? destination;
 
   Project({
     this.id,
@@ -19,6 +21,8 @@ class Project {
     this.expectedROI = 0.0,
     this.expectedIRR = 0.0,
     this.stage = 'LAND_APPROVED',
+    this.stateCategory,
+    this.destination,
   });
 
   // backward-compatible getter used across the UI
@@ -45,6 +49,8 @@ class Project {
       expectedROI: parseDouble(json['expectedROI'] ?? json['projectedGrowth'] ?? json['expected_roi']),
       expectedIRR: parseDouble(json['expectedIRR'] ?? json['irr'] ?? json['expected_irr']),
       stage: (json['stage'] ?? 'LAND_APPROVED') as String,
+      stateCategory: json['stateCategory'] ?? json['state_category'],
+      destination: json['destination'],
     );
   }
 
@@ -59,6 +65,8 @@ class Project {
       'expectedROI': expectedROI,
       'expectedIRR': expectedIRR,
       'stage': stage,
+      'stateCategory': stateCategory,
+      'destination': destination,
     };
   }
 

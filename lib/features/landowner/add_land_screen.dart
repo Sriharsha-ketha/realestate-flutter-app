@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import '../../models/land.dart';
 import '../../shared/app_state.dart';
+import '../../services/api_service.dart';
 
 class AddLandScreen extends StatefulWidget {
   const AddLandScreen({super.key});
@@ -20,6 +21,11 @@ class _AddLandScreenState extends State<AddLandScreen> {
   final List<String> _selectedUtilities = [];
   final List<File> _uploadedFiles = [];
   String _zoning = 'Tourism / Hospitality';
+  String? _selectedState;
+  String? _selectedDestination;
+
+  Map<String, List<String>> _tourismMap = {};
+  bool _loadingTourismMap = false;
 
   @override
   void dispose() {
@@ -69,6 +75,27 @@ class _AddLandScreenState extends State<AddLandScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadTourismMap();
+  }
+
+  Future<void> _loadTourismMap() async {
+    setState(() => _loadingTourismMap = true);
+    try {
+      _tourismMap = await ApiService.getTourismFilters();
+      setState(() {});
+    } catch (e) {
+      debugPrint('Error loading tourism map: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading tourism destinations: $e')),
+      );
+    } finally {
+      setState(() => _loadingTourismMap = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Add New Land')),
@@ -91,6 +118,40 @@ class _AddLandScreenState extends State<AddLandScreen> {
                 ),
               ),
               const SizedBox(height: 15),
+              // State / Region dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedState,
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('Select State / Region')),
+                  ..._tourismMap.keys.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                ],
+                onChanged: (v) => setState(() {
+                  _selectedState = v;
+                  // reset destination when state changes
+                  _selectedDestination = null;
+                }),
+                decoration: InputDecoration(
+                  labelText: 'State / Region',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 15),
+              // Destination dropdown (depends on selected state)
+              if (_selectedState != null) ...[
+                DropdownButtonFormField<String>(
+                  value: _selectedDestination,
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('All Destinations')),
+                    ...?_tourismMap[_selectedState]?.map((d) => DropdownMenuItem(value: d, child: Text(d))),
+                  ],
+                  onChanged: (v) => setState(() => _selectedDestination = v),
+                  decoration: InputDecoration(
+                    labelText: 'Tourist Destination',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 15),
+              ],
               TextField(
                 controller: _locationCtrl,
                 decoration: InputDecoration(
@@ -145,6 +206,41 @@ class _AddLandScreenState extends State<AddLandScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+              // State / Region dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedState,
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('Select State / Region')),
+                  ..._tourismMap.keys.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                ],
+                onChanged: _loadingTourismMap ? null : (v) => setState(() {
+                  _selectedState = v;
+                  // reset destination when state changes
+                  _selectedDestination = null;
+                }),
+                decoration: InputDecoration(
+                  labelText: 'State / Region',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 15),
+              // Destination dropdown (depends on selected state)
+              if (_selectedState != null) ...[
+                DropdownButtonFormField<String>(
+                  value: _selectedDestination,
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('All Destinations')),
+                    ...?_tourismMap[_selectedState]?.map((d) => DropdownMenuItem(value: d, child: Text(d))),
+                  ],
+                  onChanged: (v) => setState(() => _selectedDestination = v),
+                  decoration: InputDecoration(
+                    labelText: 'Tourist Destination',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 15),
+              ],
               const SizedBox(height: 20),
               // Project Files Upload Section
               Container(
@@ -337,6 +433,8 @@ class _AddLandScreenState extends State<AddLandScreen> {
                     legalDocuments: documentsJson.isNotEmpty ? documentsJson : null,
                     utilities: _selectedUtilities.toList(),
                     phoneNumber: _phoneCtrl.text.trim(),
+                    stateCategory: _selectedState,
+                    destination: _selectedDestination,
                   );
 
                   context.read<AppState>().addLand(newLand);

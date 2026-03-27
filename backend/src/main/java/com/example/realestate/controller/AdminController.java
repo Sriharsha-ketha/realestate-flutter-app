@@ -97,10 +97,14 @@ public class AdminController {
         project.setProjectName(req.title == null ? "New Project" : req.title);
         project.setLocation(land.getLocation());
         project.setLandId(land.getId());
+        project.setLandSize(land.getSize() != null ? land.getSize() : 0.0);
+        // Copy tourism classification fields from land to project
+        project.setStateCategory(land.getStateCategory());
+        project.setDestination(land.getDestination());
         project.setInvestmentRequired(estimatedCost);
         project.setExpectedROI(expectedRoi);
         project.setExpectedIRR(Double.isNaN(irr) ? 0.0 : irr);
-    project.setStage(ProjectStage.PLANNING);
+        project.setStage(ProjectStage.PLANNING);
 
         Project saved = projectRepository.save(project);
 
