@@ -3,6 +3,8 @@ import '../auth/login_screen.dart';
 import 'investor_dashboard.dart';
 import 'explore_screen.dart';
 import 'portfolio_screen.dart';
+import 'add_land_screen.dart';
+import 'my_lands_screen.dart';
 
 class InvestorShell extends StatefulWidget {
   const InvestorShell({super.key});
@@ -18,6 +20,8 @@ class _InvestorShellState extends State<InvestorShell> {
     InvestorDashboard(),
     ExploreScreen(),
     PortfolioScreen(),
+    AddLandScreen(),
+    MyLandsScreen(),
   ];
 
   @override
@@ -45,6 +49,7 @@ class _InvestorShellState extends State<InvestorShell> {
             currentIndex = index;
           });
         },
+        type: BottomNavigationBarType.shifting,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
@@ -57,6 +62,14 @@ class _InvestorShellState extends State<InvestorShell> {
           BottomNavigationBarItem(
             icon: Icon(Icons.pie_chart),
             label: "Portfolio",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_location),
+            label: "Add Land",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: "My Lands",
           ),
         ],
       ),

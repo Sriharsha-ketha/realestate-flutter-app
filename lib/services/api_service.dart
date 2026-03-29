@@ -25,7 +25,8 @@ class ApiService {
   }
 
   // Auth Endpoints
-  static Future<Map<String, dynamic>> login(String email, String password, {String? role}) async {
+  static Future<Map<String, dynamic>> login(String email, String password,
+      {String? role}) async {
     final payload = {"email": email, "password": password};
     if (role != null) payload['role'] = role;
     final response = await http.post(
@@ -88,7 +89,8 @@ class ApiService {
     if (response.statusCode != 200) throw Exception('OTP verification failed');
   }
 
-  static Future<void> resetPassword(String email, String otp, String newPassword) async {
+  static Future<void> resetPassword(
+      String email, String otp, String newPassword) async {
     final payload = {"email": email, "otp": otp, "newPassword": newPassword};
     final response = await http.post(
       Uri.parse('$baseUrl/auth/reset-password'),
@@ -100,7 +102,7 @@ class ApiService {
 
   // Project Endpoints
   static Future<List<Project>> getProjects({String? theme}) async {
-    String url = '$baseUrl/projects';
+    String url = '$baseUrl/lands';
     if (theme != null && theme != 'All') {
       url += '?theme=${Uri.encodeComponent(theme)}';
     }
@@ -128,18 +130,21 @@ class ApiService {
     debugPrint('[API] POST $url');
     debugPrint('[API] Headers: $headers');
     debugPrint('[API] Body: $body');
-    final response = await http.post(Uri.parse(url), headers: headers, body: body);
+    final response =
+        await http.post(Uri.parse(url), headers: headers, body: body);
     debugPrint('[API] Response status: ${response.statusCode}');
     debugPrint('[API] Response body: ${response.body}');
     if (response.statusCode == 200 || response.statusCode == 201) {
       return Project.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to create project: ${response.statusCode} ${response.body}');
+      throw Exception(
+          'Failed to create project: ${response.statusCode} ${response.body}');
     }
   }
 
   static Future<Project> updateProjectStage(int projectId, String stage) async {
-    final url = '$baseUrl/projects/update-stage/$projectId?stage=${Uri.encodeComponent(stage)}';
+    final url =
+        '$baseUrl/projects/update-stage/$projectId?stage=${Uri.encodeComponent(stage)}';
     final headers = await _getHeaders();
     debugPrint('[API] PUT $url');
     final response = await http.put(Uri.parse(url), headers: headers);
@@ -148,13 +153,15 @@ class ApiService {
     if (response.statusCode == 200) {
       return Project.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to update project stage: ${response.statusCode} ${response.body}');
+      throw Exception(
+          'Failed to update project stage: ${response.statusCode} ${response.body}');
     }
   }
 
   // Land Endpoints
   static Future<List<Land>> getLands() async {
-    final response = await http.get(Uri.parse('$baseUrl/lands'), headers: await _getHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/lands'),
+        headers: await _getHeaders());
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Land.fromJson(data)).toList();
@@ -164,7 +171,8 @@ class ApiService {
   }
 
   static Future<List<Land>> getAvailableLands() async {
-    final response = await http.get(Uri.parse('$baseUrl/lands/available'), headers: await _getHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/lands/available'),
+        headers: await _getHeaders());
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Land.fromJson(data)).toList();
@@ -234,7 +242,9 @@ class ApiService {
   }
 
   static Future<List<Eoi>> getInvestorEOIs(int investorId) async {
-    final response = await http.get(Uri.parse('$baseUrl/eois/investor/$investorId'), headers: await _getHeaders());
+    final response = await http.get(
+        Uri.parse('$baseUrl/eois/investor/$investorId'),
+        headers: await _getHeaders());
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Eoi.fromJson(data)).toList();
@@ -245,7 +255,8 @@ class ApiService {
 
   // Destinations
   static Future<List<dynamic>> _getRawDestinations() async {
-    final response = await http.get(Uri.parse('$baseUrl/destinations/all'), headers: await _getHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/destinations/all'),
+        headers: await _getHeaders());
     if (response.statusCode == 200) {
       return json.decode(response.body) as List<dynamic>;
     } else {
@@ -261,18 +272,22 @@ class ApiService {
   /// Returns typed list of [Destination] objects fetched from the backend.
   static Future<List<Destination>> getDestinations() async {
     final raw = await _getRawDestinations();
-    return raw.map((d) => Destination.fromJson(d as Map<String, dynamic>)).toList();
+    return raw
+        .map((d) => Destination.fromJson(d as Map<String, dynamic>))
+        .toList();
   }
 
   /// Fetch the tourism filter map from the backend.
   /// Returns Map<String, List<String>> where key is state and value is list of destinations.
   static Future<Map<String, List<String>>> getTourismFilters() async {
-    final response = await http.get(Uri.parse('$baseUrl/destinations/tourism'), headers: await _getHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/destinations/tourism'),
+        headers: await _getHeaders());
     if (response.statusCode == 200) {
       final jsonBody = json.decode(response.body) as Map<String, dynamic>;
       // Convert JSON to Map<String, List<String>>
       return jsonBody.map<String, List<String>>((key, value) {
-        final list = (value as List<dynamic>).map<String>((v) => v.toString()).toList();
+        final list =
+            (value as List<dynamic>).map<String>((v) => v.toString()).toList();
         return MapEntry(key, list);
       });
     } else {
@@ -281,8 +296,10 @@ class ApiService {
   }
 
   // Finance endpoints
-  static Future<double> calculateROI(double investment, double finalValue) async {
-    final url = Uri.parse('$baseUrl/finance/roi?investment=${investment.toString()}&finalValue=${finalValue.toString()}');
+  static Future<double> calculateROI(
+      double investment, double finalValue) async {
+    final url = Uri.parse(
+        '$baseUrl/finance/roi?investment=${investment.toString()}&finalValue=${finalValue.toString()}');
     final response = await http.get(url, headers: await _getHeaders());
     if (response.statusCode == 200) {
       return (json.decode(response.body) as num).toDouble();
@@ -292,7 +309,8 @@ class ApiService {
   }
 
   static Future<Map<String, double>> getScenarioROI(double investment) async {
-    final url = Uri.parse('$baseUrl/finance/roi/scenarios?investment=${investment.toString()}');
+    final url = Uri.parse(
+        '$baseUrl/finance/roi/scenarios?investment=${investment.toString()}');
     final response = await http.get(url, headers: await _getHeaders());
     if (response.statusCode == 200) {
       final map = json.decode(response.body) as Map<String, dynamic>;
@@ -317,7 +335,8 @@ class ApiService {
 
   // Admin endpoints
   static Future<List<Land>> getPendingLands() async {
-    final response = await http.get(Uri.parse('$baseUrl/admin/pending-lands'), headers: await _getHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/admin/pending-lands'),
+        headers: await _getHeaders());
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Land.fromJson(data)).toList();
@@ -352,7 +371,8 @@ class ApiService {
     }
   }
 
-  static Future<Project> convertLandToProject(int landId, Map<String, dynamic> payload) async {
+  static Future<Project> convertLandToProject(
+      int landId, Map<String, dynamic> payload) async {
     final response = await http.post(
       Uri.parse('$baseUrl/admin/convert/$landId'),
       headers: await _getHeaders(),
@@ -366,17 +386,23 @@ class ApiService {
   }
 
   // Project Milestones
-  static Future<List<ProjectMilestone>> getProjectMilestones(int projectId) async {
-    final response = await http.get(Uri.parse('$baseUrl/projects/$projectId/milestones'), headers: await _getHeaders());
+  static Future<List<ProjectMilestone>> getProjectMilestones(
+      int projectId) async {
+    final response = await http.get(
+        Uri.parse('$baseUrl/projects/$projectId/milestones'),
+        headers: await _getHeaders());
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
-      return jsonResponse.map((d) => ProjectMilestone.fromJson(d as Map<String, dynamic>)).toList();
+      return jsonResponse
+          .map((d) => ProjectMilestone.fromJson(d as Map<String, dynamic>))
+          .toList();
     } else {
       throw Exception('Failed to load project milestones');
     }
   }
 
-  static Future<ProjectMilestone> addProjectMilestone(ProjectMilestone milestone) async {
+  static Future<ProjectMilestone> addProjectMilestone(
+      ProjectMilestone milestone) async {
     final response = await http.post(
       Uri.parse('$baseUrl/milestones/add'),
       headers: await _getHeaders(),
@@ -389,9 +415,11 @@ class ApiService {
     }
   }
 
-  static Future<ProjectMilestone> updateMilestoneStatus(int milestoneId, String status) async {
+  static Future<ProjectMilestone> updateMilestoneStatus(
+      int milestoneId, String status) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/milestones/$milestoneId/status?status=${Uri.encodeComponent(status)}'),
+      Uri.parse(
+          '$baseUrl/milestones/$milestoneId/status?status=${Uri.encodeComponent(status)}'),
       headers: await _getHeaders(),
     );
     if (response.statusCode == 200) {

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:realestate/widgets/project_card.dart';
-import '../../models/project.dart';
+import 'package:realestate/widgets/land_card.dart';
+import '../../models/land.dart';
 import '../../shared/app_state.dart';
 import '../../services/api_service.dart';
-import 'project_details.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -19,17 +18,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   Map<String, List<String>> _tourismMap = {};
   bool _loadingTourismMap = false;
-  
-  List<Project> _allProjects = [];
-  List<Project> _displayed = [];
+
+  List<Land> _allLands = [];
+  List<Land> _displayed = [];
 
   @override
   void initState() {
     super.initState();
-    // Load all projects once when the screen appears
+    // Load all lands once when the screen appears
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTourismFilters();
-      _loadAllProjects();
+      _loadAllLands();
     });
   }
 
@@ -50,30 +49,30 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
   }
 
-  Future<void> _loadAllProjects() async {
+  Future<void> _loadAllLands() async {
     final appState = context.read<AppState>();
     await appState.fetchAll();
     setState(() {
-      _allProjects = List.from(appState.projects);
+      _allLands = List.from(appState.approvedLands);
       _applyTourismFilter();
     });
   }
 
   void _applyTourismFilter() {
     if (selectedMain == 'All') {
-      _displayed = List.from(_allProjects);
+      _displayed = List.from(_allLands);
       return;
     }
 
     final state = selectedMain;
     final sub = selectedSub == 'All' ? null : selectedSub;
 
-    _displayed = _allProjects.where((p) {
-      final pState = (p.stateCategory ?? '').toString();
-      final pDest = (p.destination ?? '').toString();
-      if (pState.toLowerCase() != state.toLowerCase()) return false;
+    _displayed = _allLands.where((land) {
+      final landState = (land.stateCategory ?? '').toString();
+      final landDest = (land.destination ?? '').toString();
+      if (landState.toLowerCase() != state.toLowerCase()) return false;
       if (sub == null) return true;
-      return pDest.toLowerCase() == sub.toLowerCase();
+      return landDest.toLowerCase() == sub.toLowerCase();
     }).toList();
   }
 
@@ -85,7 +84,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-                onPressed: () => _loadAllProjects(),
+            onPressed: () => _loadAllLands(),
           ),
         ],
       ),
@@ -116,7 +115,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           }
                         },
                         selectedColor: Theme.of(context).colorScheme.primary,
-                        labelStyle: TextStyle(color: selectedMain == 'All' ? Colors.white : Colors.black),
+                        labelStyle: TextStyle(
+                            color: selectedMain == 'All'
+                                ? Colors.white
+                                : Colors.black),
                       ),
                     ),
                     ...?_tourismMap.keys.map((state) {
@@ -136,7 +138,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             }
                           },
                           selectedColor: Theme.of(context).colorScheme.primary,
-                          labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                          labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black),
                         ),
                       );
                     }).toList(),
@@ -166,7 +169,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             }
                           },
                           selectedColor: Theme.of(context).colorScheme.primary,
-                          labelStyle: TextStyle(color: selectedSub == 'All' ? Colors.white : Colors.black),
+                          labelStyle: TextStyle(
+                              color: selectedSub == 'All'
+                                  ? Colors.white
+                                  : Colors.black),
                         ),
                       ),
                       ...?_tourismMap[selectedMain]?.map((dest) {
@@ -184,8 +190,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 });
                               }
                             },
-                            selectedColor: Theme.of(context).colorScheme.primary,
-                            labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                            selectedColor:
+                                Theme.of(context).colorScheme.primary,
+                            labelStyle: TextStyle(
+                                color:
+                                    isSelected ? Colors.white : Colors.black),
                           ),
                         );
                       }).toList(),
@@ -196,20 +205,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 child: appState.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _displayed.isEmpty
-                        ? const Center(child: Text("No projects found for this theme."))
+                        ? const Center(
+                            child: Text("No lands found for this theme."))
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             itemCount: _displayed.length,
                             itemBuilder: (context, index) {
-                              final proj = _displayed[index];
-                              return ProjectCard(
-                                project: proj,
+                              final land = _displayed[index];
+                              return LandCard(
+                                land: land,
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => ProjectDetails(project: proj),
-                                    ),
+                                  // TODO: Navigate to land details
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text('Land: ${land.name}')),
                                   );
                                 },
                               );
