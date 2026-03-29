@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../shared/app_state.dart';
 import '../investor/investor_shell.dart';
-import '../landowner/landowner_shell.dart';
 import '../admin/admin_shell.dart';
 import 'forgot_password_screen.dart';
 
@@ -56,14 +55,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       final role = appState.currentUserRole?.toUpperCase();
       if (role == "INVESTOR") {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const InvestorShell()));
-      } else if (role == "LANDOWNER") {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LandownerShell()));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => const InvestorShell()));
       } else if (role == "ADMIN") {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminShell()));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => const AdminShell()));
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Authentication Failed")));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Authentication Failed")));
     }
   }
 
@@ -115,49 +115,62 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.account_balance, size: 80, color: Color(0xFF1A237E)),
+                  const Icon(Icons.account_balance,
+                      size: 80, color: Color(0xFF1A237E)),
                   const SizedBox(height: 24),
-                  Text("Investify", style: Theme.of(context).textTheme.headlineMedium),
+                  Text("Investify",
+                      style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 8),
-                  Text(_isLogin ? "Welcome Back" : "Create Account", style: Theme.of(context).textTheme.bodyMedium),
+                  Text(_isLogin ? "Welcome Back" : "Create Account",
+                      style: Theme.of(context).textTheme.bodyMedium),
                   const SizedBox(height: 48),
                   TextField(
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: "Email", prefixIcon: Icon(Icons.email_outlined)),
+                    decoration: const InputDecoration(
+                        labelText: "Email",
+                        prefixIcon: Icon(Icons.email_outlined)),
                   ),
                   if (_emailError != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 6.0),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(_emailError!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+                        child: Text(_emailError!,
+                            style: const TextStyle(
+                                color: Colors.redAccent, fontSize: 12)),
                       ),
                     ),
                   const SizedBox(height: 20),
                   TextField(
                     controller: _passwordCtrl,
                     obscureText: true,
-                    decoration: const InputDecoration(labelText: "Password", prefixIcon: Icon(Icons.lock_outline)),
+                    decoration: const InputDecoration(
+                        labelText: "Password",
+                        prefixIcon: Icon(Icons.lock_outline)),
                   ),
                   if (_passwordError != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 6.0),
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(_passwordError!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+                        child: Text(_passwordError!,
+                            style: const TextStyle(
+                                color: Colors.redAccent, fontSize: 12)),
                       ),
                     ),
                   const SizedBox(height: 20),
                   DropdownButtonFormField<String>(
                     value: _role,
                     items: const [
-                      DropdownMenuItem(value: "INVESTOR", child: Text("Investor")),
-                      DropdownMenuItem(value: "LANDOWNER", child: Text("Landowner")),
+                      DropdownMenuItem(
+                          value: "INVESTOR", child: Text("Investor")),
                       DropdownMenuItem(value: "ADMIN", child: Text("Admin")),
                     ],
                     onChanged: (v) => setState(() => _role = v ?? "INVESTOR"),
-                    decoration: const InputDecoration(labelText: "Role", prefixIcon: Icon(Icons.person_outline)),
+                    decoration: const InputDecoration(
+                        labelText: "Role",
+                        prefixIcon: Icon(Icons.person_outline)),
                   ),
                   const SizedBox(height: 20),
                   if (!_isLogin && _role == "INVESTOR") ...[
@@ -198,11 +211,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     DropdownButtonFormField<String>(
                       value: _riskProfile,
                       items: const [
-                        DropdownMenuItem(value: "Conservative", child: Text("Conservative")),
-                        DropdownMenuItem(value: "Medium", child: Text("Balanced / Medium")),
-                        DropdownMenuItem(value: "Aggressive", child: Text("Aggressive")),
+                        DropdownMenuItem(
+                            value: "Conservative", child: Text("Conservative")),
+                        DropdownMenuItem(
+                            value: "Medium", child: Text("Balanced / Medium")),
+                        DropdownMenuItem(
+                            value: "Aggressive", child: Text("Aggressive")),
                       ],
-                      onChanged: (v) => setState(() => _riskProfile = v ?? "Medium"),
+                      onChanged: (v) =>
+                          setState(() => _riskProfile = v ?? "Medium"),
                       decoration: const InputDecoration(
                         labelText: "Risk Profile",
                         prefixIcon: Icon(Icons.shield_outlined),
@@ -214,12 +231,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: context.watch<AppState>().isLoading ? null : _submit,
+                      onPressed:
+                          context.watch<AppState>().isLoading ? null : _submit,
                       child: context.watch<AppState>().isLoading
                           ? const SizedBox(
                               height: 18,
                               width: 18,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2),
                             )
                           : Text(_isLogin ? "Sign In" : "Sign Up"),
                     ),
@@ -227,11 +246,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => setState(() => _isLogin = !_isLogin),
-                    child: Text(_isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"),
+                    child: Text(_isLogin
+                        ? "Don't have an account? Sign Up"
+                        : "Already have an account? Sign In"),
                   ),
                   if (_isLogin)
                     TextButton(
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+                      onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ForgotPasswordScreen())),
                       child: const Text("Forgot Password?"),
                     ),
                   const SizedBox(height: 8),

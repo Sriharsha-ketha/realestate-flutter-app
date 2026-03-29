@@ -20,15 +20,28 @@ class InvestorDashboard extends StatelessWidget {
             : portfolio.fold<double>(0, (p, t) => p + t.irr) / activeCount;
         final nextMilestone = activeCount > 0 ? portfolio.first.stage : 'N/A';
 
+        // Lands submitted by this investor
+        final currentUserId = appState.currentUserId;
+        final allLands = [...appState.pendingLands, ...appState.approvedLands];
+        final myLands =
+            allLands.where((land) => land.ownerId == currentUserId).toList();
+        final pendingLandsCount =
+            myLands.where((land) => land.reviewStatus == 'PENDING').length;
+        final approvedLandsCount =
+            myLands.where((land) => land.reviewStatus == 'APPROVED').length;
+
         // Simple recommendation list based on investor budget preferences
         final minBudget = appState.minBudget;
         final maxBudget = appState.maxBudget;
-        final recommended = appState.projects.where((p) {
-          final cost = p.investmentRequired;
-          if (minBudget != null && cost < minBudget) return false;
-          if (maxBudget != null && cost > maxBudget) return false;
-          return true;
-        }).take(3).toList();
+        final recommended = appState.projects
+            .where((p) {
+              final cost = p.investmentRequired;
+              if (minBudget != null && cost < minBudget) return false;
+              if (maxBudget != null && cost > maxBudget) return false;
+              return true;
+            })
+            .take(3)
+            .toList();
 
         if (appState.isLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -54,18 +67,21 @@ class InvestorDashboard extends StatelessWidget {
                       ),
                       if (minBudget != null || maxBudget != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.indigo.shade50,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.tune, size: 14, color: Colors.indigo),
+                              const Icon(Icons.tune,
+                                  size: 14, color: Colors.indigo),
                               const SizedBox(width: 4),
                               Text(
                                 "₹${(minBudget ?? 0).toStringAsFixed(0)} - ₹${(maxBudget ?? 0).toStringAsFixed(0)}",
-                                style: const TextStyle(fontSize: 11, color: Colors.indigo),
+                                style: const TextStyle(
+                                    fontSize: 11, color: Colors.indigo),
                               ),
                             ],
                           ),
@@ -73,6 +89,12 @@ class InvestorDashboard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 32),
+                  // Investment metrics
+                  Text(
+                    "Investment Portfolio",
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       SummaryCard(
@@ -105,6 +127,30 @@ class InvestorDashboard extends StatelessWidget {
                         value: nextMilestone,
                         icon: Icons.flag_outlined,
                         color: Colors.purple.shade700,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  // Land management section
+                  Text(
+                    "Land Management",
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      SummaryCard(
+                        title: "Pending Review",
+                        value: "$pendingLandsCount",
+                        icon: Icons.schedule_outlined,
+                        color: Colors.amber.shade700,
+                      ),
+                      const SizedBox(width: 16),
+                      SummaryCard(
+                        title: "Approved",
+                        value: "$approvedLandsCount",
+                        icon: Icons.check_circle_outlined,
+                        color: Colors.green.shade700,
                       ),
                     ],
                   ),
@@ -142,7 +188,10 @@ class InvestorDashboard extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Theme.of(context).colorScheme.primary, Color(0xFF3949AB)],
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Color(0xFF3949AB)
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -153,12 +202,17 @@ class InvestorDashboard extends StatelessWidget {
                       children: [
                         const Text(
                           "Investment Insights",
-                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           "The tourism sector is seeing a 12% growth this quarter. Check out new opportunities in the Explore tab.",
-                          style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14),
+                          style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 14),
                         ),
                       ],
                     ),

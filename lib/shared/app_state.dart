@@ -10,10 +10,12 @@ class AppState extends ChangeNotifier {
   List<Project> _projects = [];
   List<Eoi> _userEOIs = [];
 
-  List<Land> get pendingLands => _lands.where((l) => l.reviewStatus == 'PENDING').toList();
-  List<Land> get approvedLands => _lands.where((l) => l.reviewStatus == 'APPROVED').toList();
+  List<Land> get pendingLands =>
+      _lands.where((l) => l.reviewStatus == 'PENDING').toList();
+  List<Land> get approvedLands =>
+      _lands.where((l) => l.reviewStatus == 'APPROVED').toList();
   List<Project> get projects => _projects;
-  
+
   List<Project> get investorPortfolio {
     final eoiProjectIds = _userEOIs.map((e) => e.projectId).toSet();
     return _projects.where((p) => eoiProjectIds.contains(p.id)).toList();
@@ -43,9 +45,11 @@ class AppState extends ChangeNotifier {
     try {
       // 1. Fetch projects - Everyone can see these
       _projects = await ApiService.getProjects();
-      
-      // 2. Fetch lands - Only Admin and Landowner should see these
-      if (_currentUserRole == 'ADMIN' || _currentUserRole == 'LANDOWNER') {
+
+      // 2. Fetch lands - Admin, Investor, and legacy Landowner should see these
+      if (_currentUserRole == 'ADMIN' ||
+          _currentUserRole == 'INVESTOR' ||
+          _currentUserRole == 'LANDOWNER') {
         _lands = await ApiService.getLands();
       }
 
@@ -91,7 +95,7 @@ class AppState extends ChangeNotifier {
       _minBudget = (response['minBudget'] as num?)?.toDouble();
       _maxBudget = (response['maxBudget'] as num?)?.toDouble();
       _riskProfile = response['riskProfile'] as String?;
-      
+
       // Fetch data based on the newly acquired role
       await fetchAll();
       return true;
@@ -132,7 +136,7 @@ class AppState extends ChangeNotifier {
       _minBudget = (response['minBudget'] as num?)?.toDouble();
       _maxBudget = (response['maxBudget'] as num?)?.toDouble();
       _riskProfile = response['riskProfile'] as String?;
-      
+
       await fetchAll();
       return true;
     } catch (e) {
@@ -212,7 +216,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> adminApproveLand(int landId) async {
     try {
-      final updated = await ApiService.approveLand(landId, adminNotes: 'Approved via admin UI');
+      final updated = await ApiService.approveLand(landId,
+          adminNotes: 'Approved via admin UI');
       // refresh list
       await fetchPendingFromServer();
       notifyListeners();
@@ -234,7 +239,8 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<Project?> adminConvertLand(int landId, Map<String, dynamic> payload) async {
+  Future<Project?> adminConvertLand(
+      int landId, Map<String, dynamic> payload) async {
     try {
       final project = await ApiService.convertLandToProject(landId, payload);
       _projects.add(project);
@@ -251,7 +257,7 @@ class AppState extends ChangeNotifier {
     try {
       // First approve the land in the backend
       await ApiService.updateLandReview(landId, 'APPROVED');
-      
+
       // Refresh lands to get updated status
       _lands = await ApiService.getLands();
 
@@ -266,10 +272,10 @@ class AppState extends ChangeNotifier {
         expectedIRR: 0.0,
         stage: 'LAND_APPROVED',
       );
-      
+
       // Add project to backend and state
       await addProject(newProject);
-      
+
       // Fetch all projects again to ensure investors can see the new project
       _projects = await ApiService.getProjects();
       notifyListeners();
@@ -278,17 +284,18 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<Project?> convertLandToProject(int landId, Map<String, dynamic> payload) async {
+  Future<Project?> convertLandToProject(
+      int landId, Map<String, dynamic> payload) async {
     try {
       final project = await ApiService.convertLandToProject(landId, payload);
       _projects.add(project);
-      
+
       // Refresh lands to remove from pending list
       _lands = await ApiService.getLands();
-      
+
       // Fetch all projects to ensure everyone can see it
       _projects = await ApiService.getProjects();
-      
+
       notifyListeners();
       return project;
     } catch (e) {
@@ -302,13 +309,13 @@ class AppState extends ChangeNotifier {
     try {
       final eoi = Eoi(investorId: _currentUserId!, projectId: project.id!);
       await ApiService.submitEOI(eoi);
-      
+
       // Always fetch the latest EOIs to ensure portfolio is up-to-date
       _userEOIs = await ApiService.getInvestorEOIs(_currentUserId!);
-      
+
       // Also refresh projects to ensure we have the latest data
       _projects = await ApiService.getProjects();
-      
+
       notifyListeners();
       return true;
     } catch (e) {
