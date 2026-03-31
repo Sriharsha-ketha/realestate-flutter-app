@@ -16,6 +16,9 @@ public class ProjectMilestone {
     @Column(name = "project_id", nullable = false)
     private Long projectId;
 
+    @Column(name = "investor_id", nullable = false)
+    private Long investorId;
+
     @Column(nullable = false)
     private String milestone;
 
@@ -32,8 +35,9 @@ public class ProjectMilestone {
     public ProjectMilestone() {
     }
 
-    public ProjectMilestone(Long projectId, String milestone, String description, LocalDate date, MilestoneStatus status) {
+    public ProjectMilestone(Long projectId, Long investorId, String milestone, String description, LocalDate date, MilestoneStatus status) {
         this.projectId = projectId;
+        this.investorId = investorId;
         this.milestone = milestone;
         this.description = description;
         this.date = date;
@@ -54,6 +58,14 @@ public class ProjectMilestone {
 
     public void setProjectId(Long projectId) {
         this.projectId = projectId;
+    }
+
+    public Long getInvestorId() {
+        return investorId;
+    }
+
+    public void setInvestorId(Long investorId) {
+        this.investorId = investorId;
     }
 
     public String getMilestone() {

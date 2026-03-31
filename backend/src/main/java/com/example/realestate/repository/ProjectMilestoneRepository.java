@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ProjectMilestoneRepository extends JpaRepository<ProjectMilestone, Long> {
-    List<ProjectMilestone> findByProjectIdOrderByDateAsc(Long projectId);
-    List<ProjectMilestone> findByProjectId(Long projectId);
+    List<ProjectMilestone> findByProjectIdAndInvestorIdOrderByDateAsc(Long projectId, Long investorId);
 }

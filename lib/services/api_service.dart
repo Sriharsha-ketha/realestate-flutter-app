@@ -100,68 +100,104 @@ class ApiService {
     if (response.statusCode != 200) throw Exception('Password reset failed');
   }
 
+  // Finance Endpoints
+  static Future<double> calculateROI(double investment, double finalValue) async {
+    final url = Uri.parse('$baseUrl/finance/roi?investment=${investment.toString()}&finalValue=${finalValue.toString()}');
+    final response = await http.get(url, headers: await _getHeaders());
+    if (response.statusCode == 200) {
+      return (json.decode(response.body) as num).toDouble();
+    } else {
+      throw Exception('Failed to calculate ROI');
+    }
+  }
+
+  static Future<Map<String, double>> getScenarioROI(double investment) async {
+    final url = Uri.parse('$baseUrl/finance/roi/scenarios?investment=${investment.toString()}');
+    final response = await http.get(url, headers: await _getHeaders());
+    if (response.statusCode == 200) {
+      final map = json.decode(response.body) as Map<String, dynamic>;
+      return map.map((k, v) => MapEntry(k, (v as num).toDouble()));
+    } else {
+      throw Exception('Failed to fetch ROI scenarios');
+    }
+  }
+
+  static Future<double> calculateIRR(List<double> cashFlows) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/finance/irr'),
+      headers: await _getHeaders(),
+      body: json.encode(cashFlows),
+    );
+    if (response.statusCode == 200) {
+      return (json.decode(response.body) as num).toDouble();
+    } else {
+      throw Exception('Failed to calculate IRR');
+    }
+  }
+
   // Project Endpoints
   static Future<List<Project>> getProjects({String? theme}) async {
-    String url = '$baseUrl/lands';
+    var url = '$baseUrl/projects';
     if (theme != null && theme != 'All') {
       url += '?theme=${Uri.encodeComponent(theme)}';
     }
     final headers = await _getHeaders();
-    debugPrint('[API] GET $url with headers $headers');
     final response = await http.get(Uri.parse(url), headers: headers);
-    debugPrint('[API] Response status: ${response.statusCode}');
-    debugPrint('[API] Response body: ${response.body}');
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
-      debugPrint('[API] Parsed ${jsonResponse.length} projects');
-      return jsonResponse.map((data) {
-        debugPrint('[API] Project data: $data');
-        return Project.fromJson(data);
-      }).toList();
+      return jsonResponse.map((data) => Project.fromJson(data as Map<String, dynamic>)).toList();
     } else {
       throw Exception('Failed to load projects');
+    }
+  }
+
+  static Future<List<Project>> getInvestorProjects(int investorId) async {
+    final url = '$baseUrl/projects/investor/$investorId';
+    final response = await http.get(Uri.parse(url), headers: await _getHeaders());
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map((data) => Project.fromJson(data as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception('Failed to load investor projects');
+    }
+  }
+
+  static Future<List<Project>> getOwnerProjects(int ownerId) async {
+    final url = '$baseUrl/projects/owner/$ownerId';
+    final response = await http.get(Uri.parse(url), headers: await _getHeaders());
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map((data) => Project.fromJson(data as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception('Failed to load owner projects');
     }
   }
 
   static Future<Project> createProject(Project project) async {
     final url = '$baseUrl/projects/create';
     final headers = await _getHeaders();
-    final body = json.encode(project.toJson());
-    debugPrint('[API] POST $url');
-    debugPrint('[API] Headers: $headers');
-    debugPrint('[API] Body: $body');
-    final response =
-        await http.post(Uri.parse(url), headers: headers, body: body);
-    debugPrint('[API] Response status: ${response.statusCode}');
-    debugPrint('[API] Response body: ${response.body}');
+    final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(project.toJson()));
     if (response.statusCode == 200 || response.statusCode == 201) {
       return Project.fromJson(json.decode(response.body));
     } else {
-      throw Exception(
-          'Failed to create project: ${response.statusCode} ${response.body}');
+      throw Exception('Failed to create project');
     }
   }
 
   static Future<Project> updateProjectStage(int projectId, String stage) async {
-    final url =
-        '$baseUrl/projects/update-stage/$projectId?stage=${Uri.encodeComponent(stage)}';
+    final url = '$baseUrl/projects/update-stage/$projectId?stage=${Uri.encodeComponent(stage)}';
     final headers = await _getHeaders();
-    debugPrint('[API] PUT $url');
     final response = await http.put(Uri.parse(url), headers: headers);
-    debugPrint('[API] Response status: ${response.statusCode}');
-    debugPrint('[API] Response body: ${response.body}');
     if (response.statusCode == 200) {
       return Project.fromJson(json.decode(response.body));
     } else {
-      throw Exception(
-          'Failed to update project stage: ${response.statusCode} ${response.body}');
+      throw Exception('Failed to update project stage');
     }
   }
 
   // Land Endpoints
   static Future<List<Land>> getLands() async {
-    final response = await http.get(Uri.parse('$baseUrl/lands'),
-        headers: await _getHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/lands'), headers: await _getHeaders());
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Land.fromJson(data)).toList();
@@ -171,8 +207,7 @@ class ApiService {
   }
 
   static Future<List<Land>> getAvailableLands() async {
-    final response = await http.get(Uri.parse('$baseUrl/lands/available'),
-        headers: await _getHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/lands/available'), headers: await _getHeaders());
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Land.fromJson(data)).toList();
@@ -216,35 +251,25 @@ class ApiService {
     );
     if (response.statusCode == 200 || response.statusCode == 201) {
       return Eoi.fromJson(json.decode(response.body));
-    } else if (response.statusCode == 409) {
-      // Conflict: EOI already exists
-      throw Exception('EOI already submitted for this project');
     } else {
-      throw Exception('Failed to submit EOI: ${response.statusCode}');
+      throw Exception('Failed to submit EOI');
     }
   }
 
   static Future<bool> checkEOIExists(int investorId, int projectId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/eois/check/$investorId/$projectId'),
-        headers: await _getHeaders(),
-      );
-      if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
-        return jsonResponse['exists'] ?? false;
-      }
-      return false;
-    } catch (e) {
-      debugPrint("Error checking EOI existence: $e");
-      return false;
+    final response = await http.get(
+      Uri.parse('$baseUrl/eois/check/$investorId/$projectId'),
+      headers: await _getHeaders(),
+    );
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      return jsonResponse['exists'] ?? false;
     }
+    return false;
   }
 
   static Future<List<Eoi>> getInvestorEOIs(int investorId) async {
-    final response = await http.get(
-        Uri.parse('$baseUrl/eois/investor/$investorId'),
-        headers: await _getHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/eois/investor/$investorId'), headers: await _getHeaders());
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Eoi.fromJson(data)).toList();
@@ -253,90 +278,56 @@ class ApiService {
     }
   }
 
-  // Destinations
-  static Future<List<dynamic>> _getRawDestinations() async {
-    final response = await http.get(Uri.parse('$baseUrl/destinations/all'),
-        headers: await _getHeaders());
+  // Investor management
+  static Future<List<Map<String, dynamic>>> getInvestorsByProject(int projectId) async {
+    final response = await http.get(Uri.parse('$baseUrl/eois/project/$projectId'), headers: await _getHeaders());
     if (response.statusCode == 200) {
-      return json.decode(response.body) as List<dynamic>;
+      return List<Map<String, dynamic>>.from(json.decode(response.body));
     } else {
-      throw Exception('Failed to load destinations');
+      throw Exception('Failed to load investors');
     }
   }
 
-  /// Returns raw JSON list of destinations. Useful for internal utilities.
-  static Future<List<dynamic>> getRawDestinationsForInternalUse() async {
-    return await _getRawDestinations();
-  }
-
-  /// Returns typed list of [Destination] objects fetched from the backend.
-  static Future<List<Destination>> getDestinations() async {
-    final raw = await _getRawDestinations();
-    return raw
-        .map((d) => Destination.fromJson(d as Map<String, dynamic>))
-        .toList();
-  }
-
-  /// Fetch the tourism filter map from the backend.
-  /// Returns Map<String, List<String>> where key is state and value is list of destinations.
-  static Future<Map<String, List<String>>> getTourismFilters() async {
-    final response = await http.get(Uri.parse('$baseUrl/destinations/tourism'),
-        headers: await _getHeaders());
+  // Milestone Endpoints (INVESTOR DRIVEN)
+  static Future<List<ProjectMilestone>> getMilestones(int projectId, int investorId) async {
+    final url = '$baseUrl/projects/$projectId/milestones/$investorId';
+    final response = await http.get(Uri.parse(url), headers: await _getHeaders());
     if (response.statusCode == 200) {
-      final jsonBody = json.decode(response.body) as Map<String, dynamic>;
-      // Convert JSON to Map<String, List<String>>
-      return jsonBody.map<String, List<String>>((key, value) {
-        final list =
-            (value as List<dynamic>).map<String>((v) => v.toString()).toList();
-        return MapEntry(key, list);
-      });
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map((d) => ProjectMilestone.fromJson(d as Map<String, dynamic>)).toList();
     } else {
-      throw Exception('Failed to load tourism filters');
+      throw Exception('Failed to load milestones');
     }
   }
 
-  // Finance endpoints
-  static Future<double> calculateROI(
-      double investment, double finalValue) async {
-    final url = Uri.parse(
-        '$baseUrl/finance/roi?investment=${investment.toString()}&finalValue=${finalValue.toString()}');
-    final response = await http.get(url, headers: await _getHeaders());
-    if (response.statusCode == 200) {
-      return (json.decode(response.body) as num).toDouble();
-    } else {
-      throw Exception('Failed to calculate ROI');
-    }
-  }
-
-  static Future<Map<String, double>> getScenarioROI(double investment) async {
-    final url = Uri.parse(
-        '$baseUrl/finance/roi/scenarios?investment=${investment.toString()}');
-    final response = await http.get(url, headers: await _getHeaders());
-    if (response.statusCode == 200) {
-      final map = json.decode(response.body) as Map<String, dynamic>;
-      return map.map((k, v) => MapEntry(k, (v as num).toDouble()));
-    } else {
-      throw Exception('Failed to fetch ROI scenarios');
-    }
-  }
-
-  static Future<double> calculateIRR(List<double> cashFlows) async {
+  static Future<ProjectMilestone> addMilestone(ProjectMilestone milestone) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/finance/irr'),
+      Uri.parse('$baseUrl/milestones/add'),
       headers: await _getHeaders(),
-      body: json.encode(cashFlows),
+      body: json.encode(milestone.toJson()),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return ProjectMilestone.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to add milestone');
+    }
+  }
+
+  static Future<ProjectMilestone> updateMilestoneStatus(int milestoneId, String status) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/milestones/$milestoneId/status?status=${Uri.encodeComponent(status)}'),
+      headers: await _getHeaders(),
     );
     if (response.statusCode == 200) {
-      return (json.decode(response.body) as num).toDouble();
+      return ProjectMilestone.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to calculate IRR');
+      throw Exception('Failed to update milestone status');
     }
   }
 
-  // Admin endpoints
+  // Admin Endpoints
   static Future<List<Land>> getPendingLands() async {
-    final response = await http.get(Uri.parse('$baseUrl/admin/pending-lands'),
-        headers: await _getHeaders());
+    final response = await http.get(Uri.parse('$baseUrl/admin/pending-lands'), headers: await _getHeaders());
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Land.fromJson(data)).toList();
@@ -371,8 +362,7 @@ class ApiService {
     }
   }
 
-  static Future<Project> convertLandToProject(
-      int landId, Map<String, dynamic> payload) async {
+  static Future<Project> convertLandToProject(int landId, Map<String, dynamic> payload) async {
     final response = await http.post(
       Uri.parse('$baseUrl/admin/convert/$landId'),
       headers: await _getHeaders(),
@@ -385,47 +375,14 @@ class ApiService {
     }
   }
 
-  // Project Milestones
-  static Future<List<ProjectMilestone>> getProjectMilestones(
-      int projectId) async {
-    final response = await http.get(
-        Uri.parse('$baseUrl/projects/$projectId/milestones'),
-        headers: await _getHeaders());
+  // Tourism Filters
+  static Future<Map<String, List<String>>> getTourismFilters() async {
+    final response = await http.get(Uri.parse('$baseUrl/destinations/tourism'), headers: await _getHeaders());
     if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      return jsonResponse
-          .map((d) => ProjectMilestone.fromJson(d as Map<String, dynamic>))
-          .toList();
+      final jsonBody = json.decode(response.body) as Map<String, dynamic>;
+      return jsonBody.map((key, value) => MapEntry(key, (value as List).map((v) => v.toString()).toList()));
     } else {
-      throw Exception('Failed to load project milestones');
-    }
-  }
-
-  static Future<ProjectMilestone> addProjectMilestone(
-      ProjectMilestone milestone) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/milestones/add'),
-      headers: await _getHeaders(),
-      body: json.encode(milestone.toJson()),
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return ProjectMilestone.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to add milestone');
-    }
-  }
-
-  static Future<ProjectMilestone> updateMilestoneStatus(
-      int milestoneId, String status) async {
-    final response = await http.put(
-      Uri.parse(
-          '$baseUrl/milestones/$milestoneId/status?status=${Uri.encodeComponent(status)}'),
-      headers: await _getHeaders(),
-    );
-    if (response.statusCode == 200) {
-      return ProjectMilestone.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to update milestone status');
+      throw Exception('Failed to load tourism filters');
     }
   }
 }

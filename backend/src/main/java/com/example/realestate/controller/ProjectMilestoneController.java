@@ -30,16 +30,15 @@ public class ProjectMilestoneController {
         }
     }
 
-    @GetMapping("/projects/{projectId}/milestones")
-    public ResponseEntity<?> getMilestones(@PathVariable Long projectId) {
-        List<ProjectMilestone> list = milestoneService.getMilestonesForProject(projectId);
+    @GetMapping("/projects/{projectId}/milestones/{investorId}")
+    public ResponseEntity<?> getMilestonesForInvestor(@PathVariable Long projectId, @PathVariable Long investorId) {
+        List<ProjectMilestone> list = milestoneService.getMilestonesForInvestor(projectId, investorId);
         return ResponseEntity.ok(list);
     }
 
     @PutMapping("/milestones/{milestoneId}/status")
     public ResponseEntity<?> updateMilestoneStatus(@PathVariable Long milestoneId, @RequestParam String status) {
         try {
-            // normalize and convert to enum
             com.example.realestate.model.MilestoneStatus ms = com.example.realestate.model.MilestoneStatus.valueOf(status.trim().toUpperCase());
             ProjectMilestone updated = milestoneService.updateMilestoneStatus(milestoneId, ms);
             return ResponseEntity.ok(updated);

@@ -30,20 +30,31 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        
+                        // Milestones: Only PROJECT OWNER can create and update. INVESTOR can read.
+                        .requestMatchers(HttpMethod.POST, "/api/milestones/add").hasAnyRole("ADMIN", "LANDOWNER", "INVESTOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/milestones/*/status").hasAnyRole("ADMIN", "LANDOWNER", "INVESTOR")
+                        .requestMatchers(HttpMethod.GET, "/api/projects/*/milestones/**").hasAnyRole("INVESTOR", "LANDOWNER", "ADMIN")
+                        
+                        // Projects
                         .requestMatchers(HttpMethod.GET, "/api/projects/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/milestones/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/milestones/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/projects/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/projects/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/projects/**").hasRole("ADMIN")
+                        
+                        // Lands
                         .requestMatchers(HttpMethod.GET, "/api/lands/**").hasAnyRole("ADMIN", "LANDOWNER", "INVESTOR")
                         .requestMatchers(HttpMethod.POST, "/api/lands/**").hasAnyRole("LANDOWNER", "INVESTOR")
                         .requestMatchers(HttpMethod.PUT, "/api/lands/*/review").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/lands/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/lands/**").hasRole("ADMIN")
+                        
+                        // EOIs
                         .requestMatchers(HttpMethod.POST, "/api/eois/**").hasRole("INVESTOR")
                         .requestMatchers(HttpMethod.GET, "/api/eois/investor/**").hasRole("INVESTOR")
+                        .requestMatchers(HttpMethod.GET, "/api/eois/project/**").hasAnyRole("ADMIN", "LANDOWNER", "INVESTOR")
                         .requestMatchers(HttpMethod.GET, "/api/eois/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

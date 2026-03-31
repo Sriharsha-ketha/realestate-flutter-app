@@ -46,7 +46,7 @@ public class ProjectMilestoneService {
         }).orElseThrow(() -> new IllegalArgumentException("Milestone not found for id: " + milestoneId));
     }
 
-    public List<ProjectMilestone> getMilestonesForProject(Long projectId) {
-        return milestoneRepository.findByProjectIdOrderByDateAsc(projectId);
+    public List<ProjectMilestone> getMilestonesForInvestor(Long projectId, Long investorId) {
+        return milestoneRepository.findByProjectIdAndInvestorIdOrderByDateAsc(projectId, investorId);
     }
 }

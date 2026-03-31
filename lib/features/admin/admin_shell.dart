@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../auth/login_screen.dart';
 import 'admin_dashboard.dart';
 import 'land_approval_screen.dart';
-import 'project_management_screen.dart';
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -17,7 +16,6 @@ class _AdminShellState extends State<AdminShell> {
   final List<Widget> pages = const [
     AdminDashboard(),
     LandApprovalScreen(),
-    ProjectManagementScreen(),
   ];
 
   @override
@@ -53,10 +51,6 @@ class _AdminShellState extends State<AdminShell> {
           BottomNavigationBarItem(
             icon: Icon(Icons.landscape),
             label: "Land Approvals",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business),
-            label: "Projects",
           ),
         ],
       ),

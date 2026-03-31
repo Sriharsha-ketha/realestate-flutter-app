@@ -21,6 +21,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   final _landSizeCtrl = TextEditingController();
   final _expectedRoiCtrl = TextEditingController();
 
+  final _rentalYieldCtrl = TextEditingController();
+  final _occupancyCtrl = TextEditingController();
+  final _estMonthlyIncomeCtrl = TextEditingController();
+
   @override
   void dispose() {
     _titleCtrl.dispose();
@@ -30,6 +34,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     _irrCtrl.dispose();
     _capReqCtrl.dispose();
     _capRaisedCtrl.dispose();
+    _landSizeCtrl.dispose();
+    _expectedRoiCtrl.dispose();
+    _rentalYieldCtrl.dispose();
+    _occupancyCtrl.dispose();
+    _estMonthlyIncomeCtrl.dispose();
     super.dispose();
   }
 
@@ -40,8 +49,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
     final irr = double.tryParse(_irrCtrl.text) ?? 0;
     final capReq = double.tryParse(_capReqCtrl.text) ?? 0;
     final capRaised = double.tryParse(_capRaisedCtrl.text) ?? 0;
-  final landSize = double.tryParse(_landSizeCtrl.text) ?? 0.0;
-  final expectedRoi = double.tryParse(_expectedRoiCtrl.text) ?? 0.0;
+    final landSize = double.tryParse(_landSizeCtrl.text) ?? 0.0;
+    final expectedRoi = double.tryParse(_expectedRoiCtrl.text) ?? 0.0;
 
     final newProject = Project(
       projectName: _titleCtrl.text,
@@ -51,10 +60,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
       expectedIRR: irr,
       expectedROI: expectedRoi,
       stage: 'LAND_APPROVED',
+      rentalYield: double.tryParse(_rentalYieldCtrl.text) ?? 0.0,
+      occupancyRate: double.tryParse(_occupancyCtrl.text) ?? 0.0,
+      estimatedMonthlyIncome: double.tryParse(_estMonthlyIncomeCtrl.text),
     );
-    
+
     try {
-      // Await the network call so the calling screen can refresh after creation
       await context.read<AppState>().addProject(newProject);
       setState(() {
         _isSubmitting = false;
@@ -85,7 +96,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             const SizedBox(height: 15),
             TextField(
               controller: _landSizeCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: 'Land Size (acres)'),
             ),
             const SizedBox(height: 15),
@@ -106,26 +117,49 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
             const SizedBox(height: 15),
             TextField(
               controller: _irrCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: 'Projected IRR (%)'),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _expectedRoiCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: 'Expected ROI (%)'),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _capReqCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: 'Capital Required (₹Cr)'),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _capRaisedCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: 'Capital Raised (₹Cr)'),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Tourism Investment Analytics',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _rentalYieldCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Rental Yield (%)'),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: _occupancyCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Occupancy Rate (%)'),
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: _estMonthlyIncomeCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Estimated Monthly Income (₹)'),
             ),
             const SizedBox(height: 25),
             SizedBox(

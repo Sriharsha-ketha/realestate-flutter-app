@@ -51,7 +51,6 @@ class _ProjectDetailsState extends State<ProjectDetails> {
       if (success && mounted) {
         setState(() => _eoiSubmitted = true);
         
-        // Ensure portfolio data is refreshed before showing success message
         await Future.delayed(const Duration(milliseconds: 300));
         if (mounted) {
           await appState.fetchAll();
@@ -64,7 +63,6 @@ class _ProjectDetailsState extends State<ProjectDetails> {
               backgroundColor: Colors.green,
             ),
           );
-          // Pop back after successful submission
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) Navigator.pop(context);
           });
@@ -92,65 +90,28 @@ class _ProjectDetailsState extends State<ProjectDetails> {
     }
   }
 
-  // Define standard milestones and map them to stages
-  final List<String> _allMilestones = [
-    'Land Approved',
-    'Investors Joined',
-    'Design Planning',
-    'Construction Started',
-    'Resort Completed',
-    'Tourists Arriving',
-  ];
-
-  // Helper to determine completion based on current stage
-  bool _isMilestoneCompleted(String milestone, String? stage) {
-    if (stage == null) return false;
-    
-    // Mapping internal stage constants to milestone indices
-    final Map<String, int> stageToIndex = {
-      'LAND_APPROVED': 0,
-      'FUNDING': 1,
-      'PLANNING': 2,
-      'CONSTRUCTION': 3,
-      'COMPLETED': 4,
-      'OPERATIONAL': 5, // Assuming this for 'Tourists Arriving'
-    };
-
-    final currentStageIndex = stageToIndex[stage] ?? -1;
-    final milestoneIndex = _allMilestones.indexOf(milestone);
-    
-    return milestoneIndex <= currentStageIndex;
+  String _fmt(double? value, {String suffix = '', String prefix = '', int decimals = 1}) {
+    if (value == null || value == 0) return 'N/A';
+    return '$prefix${value.toStringAsFixed(decimals)}$suffix';
   }
 
-  bool _isMilestoneInProgress(String milestone, String? stage) {
-    if (stage == null) return false;
-    
-    final Map<String, int> stageToIndex = {
-      'LAND_APPROVED': 0,
-      'FUNDING': 1,
-      'PLANNING': 2,
-      'CONSTRUCTION': 3,
-      'COMPLETED': 4,
-      'OPERATIONAL': 5,
-    };
-
-    final currentStageIndex = stageToIndex[stage] ?? -1;
-    final milestoneIndex = _allMilestones.indexOf(milestone);
-    
-    return milestoneIndex == currentStageIndex + 1;
+  String _fmtCurrency(double? value) {
+    if (value == null || value == 0) return 'N/A';
+    if (value >= 10000000) return '₹${(value / 10000000).toStringAsFixed(2)} Cr';
+    if (value >= 100000) return '₹${(value / 100000).toStringAsFixed(2)} L';
+    return '₹${value.toStringAsFixed(0)}';
   }
 
   @override
   Widget build(BuildContext context) {
     final proj = widget.project;
     return Scaffold(
-      appBar: AppBar(title: const Text("Destination Intelligence")),
+      appBar: AppBar(title: const Text("Project analytics")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Destination Title & Theme
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -158,8 +119,8 @@ class _ProjectDetailsState extends State<ProjectDetails> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(proj.title, style: Theme.of(context).textTheme.headlineMedium),
-                      Text(proj.theme, style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontWeight: FontWeight.bold)),
+                      Text(proj.projectName, style: Theme.of(context).textTheme.headlineMedium),
+                      Text("Tourism Investment", style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -168,65 +129,36 @@ class _ProjectDetailsState extends State<ProjectDetails> {
             ),
             const SizedBox(height: 24),
 
-            // Market Intelligence Module (Requirement: Destination Analytics)
-            _sectionHeader(context, "Market Intelligence"),
+            _sectionHeader(context, "Investment Metrics"),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Column(
-                children: [
-                  _analyticRow("Projected Growth", "${proj.projectedGrowth}% YoY", Icons.trending_up, Colors.green),
-                  const Divider(height: 24),
-                  _analyticRow("Demand Index", "${proj.demandIndex}/10", Icons.leaderboard, Colors.blue),
-                  const Divider(height: 24),
-                  _analyticRow("Risk Profile", proj.riskProfile, Icons.shield_outlined, Colors.orange),
-                ],
-              ),
-            ),
+            _analyticsCard([
+              _analyticRow("Expected ROI", _fmt(proj.expectedROI, suffix: '%'), Icons.trending_up, Colors.green),
+              _analyticRow("Rental Yield", _fmt(proj.rentalYield, suffix: '%'), Icons.home_work_outlined, Colors.blue),
+              _analyticRow("Proj. Annual Income", _fmtCurrency(proj.projectedAnnualIncome), Icons.payments_outlined, Colors.teal),
+              _analyticRow("Break-even Period", _fmt(proj.breakEvenYears, suffix: ' yrs'), Icons.timer_outlined, Colors.orange),
+              _analyticRow("Capital Appreciation", _fmt(proj.capitalAppreciation, suffix: '%'), Icons.moving, Colors.purple),
+            ]),
             const SizedBox(height: 32),
 
-            // Financial Modelling Output (Requirement: ROI/IRR Projections)
-            _sectionHeader(context, "Financial Projections"),
+            _sectionHeader(context, "Demand Metrics"),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                _miniStatCard(context, "Expected IRR", "${proj.irr}%", Icons.pie_chart),
-                const SizedBox(width: 12),
-                _miniStatCard(context, "Capital Req.", "₹${proj.capitalRequired} Cr", Icons.account_balance),
-              ],
-            ),
+            _analyticsCard([
+              _analyticRow("Avg Occupancy", _fmt(proj.averageOccupancy ?? proj.occupancyRate, suffix: '%'), Icons.people_outline, Colors.blue),
+              _analyticRow("Peak Occupancy", _fmt(proj.peakOccupancy, suffix: '%'), Icons.groups_outlined, Colors.indigo),
+              _analyticRow("Seasonal Demand", proj.seasonalDemand ?? "MEDIUM", Icons.wb_sunny_outlined, Colors.amber),
+              _analyticRow("ADR (Avg Daily Rate)", _fmtCurrency(proj.adr), Icons.bed_outlined, Colors.brown),
+            ]),
             const SizedBox(height: 32),
 
-            // Project Lifecycle Tracker (Standardized Milestones)
-            _sectionHeader(context, "Development Roadmap"),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade100),
-              ),
-              child: Column(
-                children: _allMilestones.map((milestone) {
-                  final isCompleted = _isMilestoneCompleted(milestone, proj.stage);
-                  final isInProgress = _isMilestoneInProgress(milestone, proj.stage);
-                  
-                  return MilestoneTile(
-                    title: milestone,
-                    completed: isCompleted,
-                    inProgress: isInProgress,
-                  );
-                }).toList(),
-              ),
-            ),
+            _sectionHeader(context, "Financial Metrics"),
+            const SizedBox(height: 12),
+            _analyticsCard([
+              _analyticRow("Monthly Cash Flow", _fmtCurrency(proj.monthlyCashFlow), Icons.account_balance_wallet_outlined, Colors.green),
+              _analyticRow("Net Operating Income", _fmtCurrency(proj.noi), Icons.pie_chart_outline, Colors.deepOrange),
+              _analyticRow("IRR", _fmt(proj.expectedIRR, suffix: '%'), Icons.show_chart, Colors.indigo),
+            ]),
             const SizedBox(height: 32),
 
-            // Compliance & Disclaimer (Requirement: Compliance controls)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -257,7 +189,6 @@ class _ProjectDetailsState extends State<ProjectDetails> {
             ),
             const SizedBox(height: 32),
 
-            // EOI Status or Submit Button
             if (_eoiSubmitted)
               Container(
                 width: double.infinity,
@@ -311,36 +242,30 @@ class _ProjectDetailsState extends State<ProjectDetails> {
     return Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold));
   }
 
+  Widget _analyticsCard(List<Widget> rows) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(children: rows.expand((w) => [w, const Divider(height: 20, thickness: 0.5)]).toList()..removeLast()),
+    );
+  }
+
   Widget _analyticRow(String label, String value, IconData icon, Color color) {
     return Row(
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(width: 12),
-        Text(label, style: const TextStyle(color: Colors.grey)),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
         const Spacer(),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
       ],
-    );
-  }
-
-  Widget _miniStatCard(BuildContext context, String label, String value, IconData icon) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 8),
-            Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
     );
   }
 }

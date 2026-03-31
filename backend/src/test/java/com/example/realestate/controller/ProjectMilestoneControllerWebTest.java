@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,8 +36,9 @@ class ProjectMilestoneControllerWebTest {
 
     @Test
     void addMilestone_returnsCreated() throws Exception {
-        ProjectMilestone in = new ProjectMilestone(1L, "Design Planning", "desc", LocalDate.now(), MilestoneStatus.PENDING);
-        ProjectMilestone saved = new ProjectMilestone(1L, "Design Planning", "desc", LocalDate.now(), MilestoneStatus.PENDING);
+        // Updated to include investorId (101L)
+        ProjectMilestone in = new ProjectMilestone(1L, 101L, "Design Planning", "desc", LocalDate.now(), MilestoneStatus.PENDING);
+        ProjectMilestone saved = new ProjectMilestone(1L, 101L, "Design Planning", "desc", LocalDate.now(), MilestoneStatus.PENDING);
         saved.setId(10L);
 
         when(milestoneService.addMilestone(any())).thenReturn(saved);
@@ -50,11 +52,15 @@ class ProjectMilestoneControllerWebTest {
 
     @Test
     void getMilestones_returnsList() throws Exception {
-        ProjectMilestone m1 = new ProjectMilestone(1L, "Land Approved", "ok", LocalDate.now(), MilestoneStatus.COMPLETED);
+        // Updated to include investorId (101L)
+        ProjectMilestone m1 = new ProjectMilestone(1L, 101L, "Land Approved", "ok", LocalDate.now(), MilestoneStatus.COMPLETED);
         m1.setId(1L);
-        when(milestoneService.getMilestonesForProject(1L)).thenReturn(List.of(m1));
+        
+        // Updated service method call
+        when(milestoneService.getMilestonesForInvestor(eq(1L), eq(101L))).thenReturn(List.of(m1));
 
-        mockMvc.perform(get("/api/projects/1/milestones").accept(MediaType.APPLICATION_JSON))
+        // Updated endpoint URL to include investorId
+        mockMvc.perform(get("/api/projects/1/milestones/101").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("[0].id").value(1));
     }

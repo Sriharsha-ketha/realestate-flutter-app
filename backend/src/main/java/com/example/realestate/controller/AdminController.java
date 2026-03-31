@@ -61,6 +61,22 @@ public class AdminController {
         public Double estimatedCost; // total project cost
         public Double expectedAnnualRevenue; // revenue per year
         public Integer evaluationYears = 5; // horizon for IRR/payback
+        
+        // Manual analytics overrides
+        public Double rentalYield;
+        public Double projectedAnnualIncome;
+        public Double capitalAppreciation;
+        public Double averageOccupancy;
+        public Double peakOccupancy;
+        public String seasonalDemand;
+        public Double adr;
+        public Double monthlyCashFlow;
+        public Double noi;
+        
+        // Optional manual overrides for calculated values
+        public Boolean overrideCalculated = false;
+        public Double manualROI;
+        public Double manualIRR;
     }
 
     @PostMapping("/convert/{landId}")
@@ -72,7 +88,6 @@ public class AdminController {
 
         Land land = optLand.get();
         // Ensure the land is marked as approved when converting to a project.
-        // This lets admins approve & convert in a single step from the UI.
         if (!"APPROVED".equalsIgnoreCase(land.getReviewStatus())) {
             land.setReviewStatus("APPROVED");
         }
@@ -81,34 +96,46 @@ public class AdminController {
         double expectedAnnualRevenue = req.expectedAnnualRevenue == null ? 0.0 : req.expectedAnnualRevenue;
         int years = req.evaluationYears == null ? 5 : req.evaluationYears;
 
-        // Expected ROI (simple annual ROI assumption)
+        // Default calculations
         double expectedRoi = estimatedCost > 0 ? (expectedAnnualRevenue / estimatedCost) * 100.0 : 0.0;
-
-        // Payback period in years
-        double payback = expectedAnnualRevenue > 0 ? (estimatedCost / expectedAnnualRevenue) : Double.NaN;
-
-        // Build cashflows for IRR: -cost at t0, then expected revenue for `years` years
         double[] cashFlows = new double[years + 1];
         cashFlows[0] = -estimatedCost;
         for (int i = 1; i <= years; i++) cashFlows[i] = expectedAnnualRevenue;
         double irr = IRRCalculator.calculateIRR(cashFlows);
+        if (Double.isNaN(irr)) irr = 0.0;
+
+        // Apply overrides if provided and enabled
+        if (Boolean.TRUE.equals(req.overrideCalculated)) {
+            if (req.manualROI != null) expectedRoi = req.manualROI;
+            if (req.manualIRR != null) irr = req.manualIRR;
+        }
 
         Project project = new Project();
         project.setProjectName(req.title == null ? "New Project" : req.title);
         project.setLocation(land.getLocation());
         project.setLandId(land.getId());
         project.setLandSize(land.getSize() != null ? land.getSize() : 0.0);
-        // Copy tourism classification fields from land to project
         project.setStateCategory(land.getStateCategory());
         project.setDestination(land.getDestination());
         project.setInvestmentRequired(estimatedCost);
         project.setExpectedROI(expectedRoi);
-        project.setExpectedIRR(Double.isNaN(irr) ? 0.0 : irr);
+        project.setExpectedIRR(irr);
         project.setStage(ProjectStage.PLANNING);
+        project.setOwnerId(land.getOwnerId()); // Link project to land owner
+
+        // Bind new analytics fields
+        project.setRentalYield(req.rentalYield != null ? req.rentalYield : 0.0);
+        project.setProjectedAnnualIncome(req.projectedAnnualIncome != null ? req.projectedAnnualIncome : 0.0);
+        project.setCapitalAppreciation(req.capitalAppreciation);
+        project.setAverageOccupancy(req.averageOccupancy);
+        project.setPeakOccupancy(req.peakOccupancy);
+        project.setSeasonalDemand(req.seasonalDemand != null ? req.seasonalDemand : "MEDIUM");
+        project.setAverageDailyRate(req.adr != null ? req.adr : 0.0);
+        project.setMonthlyCashFlow(req.monthlyCashFlow != null ? req.monthlyCashFlow : 0.0);
+        project.setNetOperatingIncome(req.noi != null ? req.noi : 0.0);
 
         Project saved = projectRepository.save(project);
 
-        // Mark land as converted/listed so it disappears from the pending list.
         land.setStage("CONVERTED_TO_PROJECT");
         landRepository.save(land);
 

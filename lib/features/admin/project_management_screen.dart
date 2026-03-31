@@ -32,6 +32,8 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
     final appState = context.read<AppState>();
     final currentProj = appState.projects[idx];
     if (currentProj.id == null) return;
+    // Note: Admin still manages overall project stage, 
+    // while milestones are now handled separately per investor.
     appState.updateProjectStage(currentProj.id!, newStage);
   }
 
@@ -133,24 +135,7 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => MilestonesPage(
-                                      projectId: proj.id!,
-                                      projectName: proj.projectName,
-                                      initialStage: proj.stage,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: const Text("View Progress"),
-                            ),
-                          ),
+                          // View general milestones (not investor specific) removed for admin per goal
                         ],
                       ),
                     ),

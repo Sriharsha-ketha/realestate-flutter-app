@@ -1,13 +1,17 @@
 package com.example.realestate.controller;
 
 import com.example.realestate.model.Project;
+import com.example.realestate.model.Eoi;
 import com.example.realestate.service.ProjectService;
+import com.example.realestate.repository.EoiRepository;
+import com.example.realestate.repository.ProjectRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -15,9 +19,13 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final EoiRepository eoiRepository;
+    private final ProjectRepository projectRepository;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, EoiRepository eoiRepository, ProjectRepository projectRepository) {
         this.projectService = projectService;
+        this.eoiRepository = eoiRepository;
+        this.projectRepository = projectRepository;
     }
 
     @PostMapping("/create")
@@ -32,21 +40,32 @@ public class ProjectController {
             String stageName = project.getStage() != null ? project.getStage().name() : null;
             double progressVal = projectService.calculateProjectProgress(stageName);
             int progress = (int) progressVal;
-            return new ProjectResponse(
-                    project.getId(),
-                    project.getLandId(),
-                    project.getProjectName(),
-                    project.getLocation(),
-                    project.getLandSize(),
-                    project.getInvestmentRequired(),
-                    project.getExpectedROI(),
-                    project.getExpectedIRR(),
-                    stageName,
-                    progress
-        ,
-            project.getStateCategory(),
-            project.getDestination()
-        );
+            return ProjectResponse.from(project, progress);
+        }).toList();
+    }
+
+    @GetMapping("/investor/{investorId}")
+    public List<ProjectResponse> getProjectsByInvestor(@PathVariable Long investorId) {
+        System.out.println(">>> ProjectController: Fetching projects for investor: " + investorId);
+        List<Eoi> eois = eoiRepository.findByInvestorId(investorId);
+        List<Long> projectIds = eois.stream().map(Eoi::getProjectId).collect(Collectors.toList());
+        
+        return projectService.getAllProjects().stream()
+                .filter(p -> projectIds.contains(p.getId()))
+                .map(project -> {
+                    String stageName = project.getStage() != null ? project.getStage().name() : null;
+                    double progressVal = projectService.calculateProjectProgress(stageName);
+                    return ProjectResponse.from(project, (int) progressVal);
+                }).collect(Collectors.toList());
+    }
+
+    @GetMapping("/owner/{ownerId}")
+    public List<ProjectResponse> getProjectsByOwner(@PathVariable Long ownerId) {
+        System.out.println(">>> ProjectController: Fetching projects for owner: " + ownerId);
+        return projectRepository.findByOwnerId(ownerId).stream().map(project -> {
+            String stageName = project.getStage() != null ? project.getStage().name() : null;
+            double progressVal = projectService.calculateProjectProgress(stageName);
+            return ProjectResponse.from(project, (int) progressVal);
         }).toList();
     }
 
